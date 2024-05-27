@@ -141,7 +141,7 @@ always @ (posedge Clk or posedge Reset)
 //******************************************************************************   
 //a port for read ,b port for write .
 //******************************************************************************     
-duram #(8,3,"M512","DUAL_PORT") U_duram(
+duram #(8,3,"auto") U_duram(
 .data_a         (din       ),
 .wren_a         (wr_en        ),
 .address_a      (addr_wr      ),

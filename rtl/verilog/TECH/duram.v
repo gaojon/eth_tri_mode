@@ -8,13 +8,13 @@ address_b,
 clock_a,
 clock_b,
 q_a,
-q_b);   //synthesis syn_black_box
+q_b);   
 
-parameter DATA_WIDTH    = 32; 
-parameter ADDR_WIDTH    = 5;  
-parameter BLK_RAM_TYPE  = "AUTO";
-parameter DURAM_MODE    = "BIDIR_DUAL_PORT";
-parameter ADDR_DEPTH    = 2**ADDR_WIDTH;
+parameter integer DATA_WIDTH    = 36; 
+parameter integer ADDR_WIDTH    = 9;  
+parameter  MEMORY_PRIMITIVE     = "auto";
+parameter integer MEMORY_SIZE   = (2**ADDR_WIDTH)*DATA_WIDTH;
+
 
 
 
@@ -30,58 +30,129 @@ input                       clock_b;
 output  [DATA_WIDTH -1:0]   q_b;
  
  
-
-altsyncram U_altsyncram (
-.wren_a         (wren_a),
-.wren_b         (wren_b),
-.data_a         (data_a),
-.data_b         (data_b),
-.address_a      (address_a),
-.address_b      (address_b),
-.clock0         (clock_a),
-.clock1         (clock_b),
-.q_a            (q_a),
-.q_b            (q_b),
-// synopsys translate_off
-.aclr0 (),
-.aclr1 (),
-.addressstall_a (),
-.addressstall_b (),
-.byteena_a (),
-.byteena_b (),
-.clocken0 (),
-.clocken1 (),
-.rden_b ()
-// synopsys translate_on
-);
-    defparam
-        U_altsyncram.intended_device_family = "Stratix",
-        U_altsyncram.ram_block_type = BLK_RAM_TYPE,
-        U_altsyncram.operation_mode = DURAM_MODE,
-        U_altsyncram.width_a = DATA_WIDTH,
-        U_altsyncram.widthad_a = ADDR_WIDTH,
-//      U_altsyncram.numwords_a = 256,
-        U_altsyncram.width_b = DATA_WIDTH,
-        U_altsyncram.widthad_b = ADDR_WIDTH,
-//      U_altsyncram.numwords_b = 256,
-        U_altsyncram.lpm_type = "altsyncram",
-        U_altsyncram.width_byteena_a = 1,
-        U_altsyncram.width_byteena_b = 1,
-        U_altsyncram.outdata_reg_a = "UNREGISTERED",
-        U_altsyncram.outdata_aclr_a = "NONE",
-        U_altsyncram.outdata_reg_b = "UNREGISTERED",
-        U_altsyncram.indata_aclr_a = "NONE",
-        U_altsyncram.wrcontrol_aclr_a = "NONE",
-        U_altsyncram.address_aclr_a = "NONE",
-        U_altsyncram.indata_reg_b = "CLOCK1",
-        U_altsyncram.address_reg_b = "CLOCK1",
-        U_altsyncram.wrcontrol_wraddress_reg_b = "CLOCK1",
-        U_altsyncram.indata_aclr_b = "NONE",
-        U_altsyncram.wrcontrol_aclr_b = "NONE",
-        U_altsyncram.address_aclr_b = "NONE",
-        U_altsyncram.outdata_aclr_b = "NONE",
-        U_altsyncram.power_up_uninitialized = "FALSE";
  
+   xpm_memory_tdpram #(
+      .ADDR_WIDTH_A(ADDR_WIDTH),               // DECIMAL
+      .ADDR_WIDTH_B(ADDR_WIDTH),               // DECIMAL
+      .AUTO_SLEEP_TIME(0),            // DECIMAL
+      .BYTE_WRITE_WIDTH_A(DATA_WIDTH),        // DECIMAL
+      .BYTE_WRITE_WIDTH_B(DATA_WIDTH),        // DECIMAL
+      .CASCADE_HEIGHT(0),             // DECIMAL
+      .CLOCKING_MODE("independent_clock"), // String
+      .ECC_BIT_RANGE("7:0"),          // String
+      .ECC_MODE("no_ecc"),            // String
+      .ECC_TYPE("none"),              // String
+      .IGNORE_INIT_SYNTH(0),          // DECIMAL
+      .MEMORY_INIT_FILE("none"),      // String
+      .MEMORY_INIT_PARAM("0"),        // String
+      .MEMORY_OPTIMIZATION("true"),   // String
+      .MEMORY_PRIMITIVE("auto"),      // String
+      .MEMORY_SIZE(MEMORY_SIZE),             // DECIMAL
+      .MESSAGE_CONTROL(0),            // DECIMAL
+      .RAM_DECOMP("auto"),            // String
+      .READ_DATA_WIDTH_A(DATA_WIDTH),         // DECIMAL
+      .READ_DATA_WIDTH_B(DATA_WIDTH),         // DECIMAL
+      .READ_LATENCY_A(2),             // DECIMAL
+      .READ_LATENCY_B(2),             // DECIMAL
+      .READ_RESET_VALUE_A("0"),       // String
+      .READ_RESET_VALUE_B("0"),       // String
+      .RST_MODE_A("SYNC"),            // String
+      .RST_MODE_B("SYNC"),            // String
+      .SIM_ASSERT_CHK(0),             // DECIMAL; 0=disable simulation messages, 1=enable simulation messages
+      .USE_EMBEDDED_CONSTRAINT(0),    // DECIMAL
+      .USE_MEM_INIT(1),               // DECIMAL
+      .USE_MEM_INIT_MMI(0),           // DECIMAL
+      .WAKEUP_TIME("disable_sleep"),  // String
+      .WRITE_DATA_WIDTH_A(DATA_WIDTH),        // DECIMAL
+      .WRITE_DATA_WIDTH_B(DATA_WIDTH),        // DECIMAL
+      .WRITE_MODE_A("no_change"),     // String
+      .WRITE_MODE_B("no_change"),     // String
+      .WRITE_PROTECT(1)               // DECIMAL
+   )
+   xpm_memory_tdpram_inst (
+      .dbiterra(),             // 1-bit output: Status signal to indicate double bit error occurrence
+                                       // on the data output of port A.
+
+      .dbiterrb(),             // 1-bit output: Status signal to indicate double bit error occurrence
+                                       // on the data output of port A.
+
+      .douta(q_a),                   // READ_DATA_WIDTH_A-bit output: Data output for port A read operations.
+      .doutb(q_b),                   // READ_DATA_WIDTH_B-bit output: Data output for port B read operations.
+      .sbiterra(),             // 1-bit output: Status signal to indicate single bit error occurrence
+                                       // on the data output of port A.
+
+      .sbiterrb(),             // 1-bit output: Status signal to indicate single bit error occurrence
+                                       // on the data output of port B.
+
+      .addra(address_a),                   // ADDR_WIDTH_A-bit input: Address for port A write and read operations.
+      .addrb(address_b),                   // ADDR_WIDTH_B-bit input: Address for port B write and read operations.
+      .clka(clock_a),                     // 1-bit input: Clock signal for port A. Also clocks port B when
+                                       // parameter CLOCKING_MODE is "common_clock".
+
+      .clkb(clock_b),                     // 1-bit input: Clock signal for port B when parameter CLOCKING_MODE is
+                                       // "independent_clock". Unused when parameter CLOCKING_MODE is
+                                       // "common_clock".
+
+      .dina(data_a),                     // WRITE_DATA_WIDTH_A-bit input: Data input for port A write operations.
+      .dinb(data_b),                     // WRITE_DATA_WIDTH_B-bit input: Data input for port B write operations.
+      .ena(1'b1),                       // 1-bit input: Memory enable signal for port A. Must be high on clock
+                                       // cycles when read or write operations are initiated. Pipelined
+                                       // internally.
+
+      .enb(1'b1),                       // 1-bit input: Memory enable signal for port B. Must be high on clock
+                                       // cycles when read or write operations are initiated. Pipelined
+                                       // internally.
+
+      .injectdbiterra(1'b0), // 1-bit input: Controls double bit error injection on input data when
+                                       // ECC enabled (Error injection capability is not available in
+                                       // "decode_only" mode).
+
+      .injectdbiterrb(1'b0), // 1-bit input: Controls double bit error injection on input data when
+                                       // ECC enabled (Error injection capability is not available in
+                                       // "decode_only" mode).
+
+      .injectsbiterra(1'b0), // 1-bit input: Controls single bit error injection on input data when
+                                       // ECC enabled (Error injection capability is not available in
+                                       // "decode_only" mode).
+
+      .injectsbiterrb(1'b0), // 1-bit input: Controls single bit error injection on input data when
+                                       // ECC enabled (Error injection capability is not available in
+                                       // "decode_only" mode).
+
+      .regcea(1'b1),                 // 1-bit input: Clock Enable for the last register stage on the output
+                                       // data path.
+
+      .regceb(1'b1),                 // 1-bit input: Clock Enable for the last register stage on the output
+                                       // data path.
+
+      .rsta(1'b0),                     // 1-bit input: Reset signal for the final port A output register stage.
+                                       // Synchronously resets output port douta to the value specified by
+                                       // parameter READ_RESET_VALUE_A.
+
+      .rstb(1'b0),                     // 1-bit input: Reset signal for the final port B output register stage.
+                                       // Synchronously resets output port doutb to the value specified by
+                                       // parameter READ_RESET_VALUE_B.
+
+      .sleep(1'b0),                   // 1-bit input: sleep signal to enable the dynamic power saving feature.
+      .wea(wren_a),                       // WRITE_DATA_WIDTH_A/BYTE_WRITE_WIDTH_A-bit input: Write enable vector
+                                       // for port A input data port dina. 1 bit wide when word-wide writes are
+                                       // used. In byte-wide write configurations, each bit controls the
+                                       // writing one byte of dina to address addra. For example, to
+                                       // synchronously write only bits [15-8] of dina when WRITE_DATA_WIDTH_A
+                                       // is 32, wea would be 4'b0010.
+
+      .web(wren_b)                        // WRITE_DATA_WIDTH_B/BYTE_WRITE_WIDTH_B-bit input: Write enable vector
+                                       // for port B input data port dinb. 1 bit wide when word-wide writes are
+                                       // used. In byte-wide write configurations, each bit controls the
+                                       // writing one byte of dinb to address addrb. For example, to
+                                       // synchronously write only bits [15-8] of dinb when WRITE_DATA_WIDTH_B
+                                       // is 32, web would be 4'b0010.
+
+   );
+ 
+ 
+
+
 endmodule 
 
 

@@ -717,7 +717,7 @@ always @ (posedge Clk_SYS or posedge Reset)
 
 //******************************************************************************
 
-duram #(36,`MAC_RX_FF_DEPTH,"M4K") U_duram(          
+duram #(36,`MAC_RX_FF_DEPTH,"auto") U_duram(          
 .data_a         (Din        ), 
 .wren_a         (Wr_en      ), 
 .address_a      (Add_wr     ), 

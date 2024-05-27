@@ -111,7 +111,7 @@ assign MAC_tx_addr_data=dout;
 //******************************************************************************   
 //b port for read ,a port for write .
 //******************************************************************************
-duram #(8,3,"M512","DUAL_PORT") U_duram(           
+duram #(8,3,"auto") U_duram(           
 .data_a         (din            ), 
 .wren_a         (wr_en          ), 
 .address_a      (add_wr         ), 
