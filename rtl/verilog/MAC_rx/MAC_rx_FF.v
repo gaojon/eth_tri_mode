@@ -76,14 +76,14 @@ Fifo_data_end   ,
 Rx_Hwmark,
 Rx_Lwmark,
 RX_APPEND_CRC,                                                                                                                                      
-//user interface                                                                                                                                               
-Rx_mac_ra   ,                                                                                                                       
-Rx_mac_rd   ,                                                                                                                                             
-Rx_mac_data ,                                                                                                                                             
-Rx_mac_BE   ,
-Rx_mac_sop  ,  
-Rx_mac_pa,                                                                                                                                           
-Rx_mac_eop                                                                                                                                             
+//user interface      
+M_AXIS_tdata	,	
+M_AXIS_tdest    ,  	
+M_AXIS_tid      ,  	
+M_AXIS_tlast    ,  	
+M_AXIS_tready   ,  	
+M_AXIS_tstrb    ,  	
+M_AXIS_tvalid                                                                                                                            
 );
 input           Reset       ;
 input           Clk_MAC     ;
@@ -99,13 +99,13 @@ input           RX_APPEND_CRC       ;
 input   [4:0]   Rx_Hwmark           ;
 input   [4:0]   Rx_Lwmark           ;
                 //user interface 
-output          Rx_mac_ra   ;//
-input           Rx_mac_rd   ;
-output  [31:0]  Rx_mac_data ;
-output  [1:0]   Rx_mac_BE   ;
-output          Rx_mac_pa   ;
-output          Rx_mac_sop  ;
-output          Rx_mac_eop  ;
+output [31:0]	M_AXIS_tdata		;
+output 			M_AXIS_tdest      	;
+output 			M_AXIS_tid        	;
+output 			M_AXIS_tlast      	;
+input 			M_AXIS_tready     	;
+output 	[3:0]	M_AXIS_tstrb      	;
+output 			M_AXIS_tvalid     	;
 
 //******************************************************************************
 //internal signals                                                              
@@ -123,9 +123,10 @@ parameter       State_idle      =4'd9;
 
 parameter       SYS_read        =3'd0;
 parameter       SYS_pause       =3'd1;
-parameter       SYS_wait_end    =3'd2;
+parameter       SYS_pre   		=3'd2;
 parameter       SYS_idle        =3'd3;
-parameter       FF_emtpy_err    =3'd4;
+parameter       SYS_lag	    	=3'd5;
+parameter       FF_emtpy_err    =3'd6;
 
 reg [`MAC_RX_FF_DEPTH-1:0]       Add_wr;
 reg [`MAC_RX_FF_DEPTH-1:0]       Add_wr_ungray;
@@ -166,6 +167,9 @@ reg             Rx_mac_ra   ;
 reg             Rx_mac_pa   ;
 
 
+reg 	[3:0]	M_AXIS_tstrb      	;
+reg 			M_AXIS_tvalid     	;
+
 
 reg [2:0]       Current_state_SYS /* synthesis syn_keep=1 */;
 reg [2:0]       Next_state_SYS ;
@@ -180,7 +184,7 @@ reg             Packet_number_add_tmp_dl1;
 reg             Packet_number_add_tmp_dl2;
 
 reg             Rx_mac_sop_tmp_dl1;
-reg [35:0]      Dout_dl1;
+
 reg [4:0]       Fifo_data_count;
 reg             Rx_mac_pa_tmp       ;
 reg             Add_wr_jump_tmp     ;
@@ -498,7 +502,16 @@ always @ (posedge Clk_MAC or posedge Reset)
 //******************************************************************************
 //domain Clk_SYS,read data from dprom.b-port for read
 //******************************************************************************
+reg 	[3:0]	state_counter;
+reg		Rx_mac_rd;
 
+always @ (posedge Clk_SYS or posedge Reset)
+    if (Reset)
+		state_counter <=0;
+	else if (Current_state_SYS==Next_state_SYS)
+		state_counter <=state_counter + 1'b1;
+	else	
+		state_counter <=0;
 
 always @ (posedge Clk_SYS or posedge Reset)
     if (Reset)
@@ -506,26 +519,26 @@ always @ (posedge Clk_SYS or posedge Reset)
     else 
         Current_state_SYS   <=Next_state_SYS;
         
-always @ (Current_state_SYS or Rx_mac_rd or Rx_mac_ra or Dout or Empty)
+always @ (*)
     case (Current_state_SYS)
         SYS_idle:
-			if (Rx_mac_rd&&Rx_mac_ra&&!Empty)
+			if (M_AXIS_tready&&Rx_mac_ra&&!Empty)
                 Next_state_SYS  =SYS_read;
-		    else if(Rx_mac_rd&&Rx_mac_ra&&Empty)
+		    else if(M_AXIS_tready&&Rx_mac_ra&&Empty)
 		        Next_state_SYS	=FF_emtpy_err;
             else
                 Next_state_SYS  =Current_state_SYS;
         SYS_read:
             if (Dout[35])                
-                Next_state_SYS  =SYS_wait_end;
-            else if (!Rx_mac_rd)
+                Next_state_SYS  =SYS_idle;
+            else if (!M_AXIS_tready)
                 Next_state_SYS  =SYS_pause;
             else if (Empty)
                 Next_state_SYS  =FF_emtpy_err;
             else
                 Next_state_SYS  =Current_state_SYS;
         SYS_pause:
-            if (Rx_mac_rd)                            
+            if (M_AXIS_tready)                            
                 Next_state_SYS  =SYS_read;         
             else                                   
                 Next_state_SYS  =Current_state_SYS;
@@ -533,12 +546,20 @@ always @ (Current_state_SYS or Rx_mac_rd or Rx_mac_ra or Dout or Empty)
             if (!Empty)
                 Next_state_SYS  =SYS_read;
             else
-                Next_state_SYS  =Current_state_SYS;
-        SYS_wait_end:
-            if (!Rx_mac_rd)
+                Next_state_SYS  =Current_state_SYS;  
+		/*			
+        SYS_pre:
+            if (state_counter==4'd1)
+                Next_state_SYS  =SYS_read;
+            else
+                Next_state_SYS  =Current_state_SYS;        
+				
+		SYS_lag:
+            if (state_counter==4'd1)
                 Next_state_SYS  =SYS_idle;
             else
-                Next_state_SYS  =Current_state_SYS;
+                Next_state_SYS  =Current_state_SYS;   
+		*/
         default:
                 Next_state_SYS  =SYS_idle;
     endcase
@@ -559,7 +580,7 @@ always @ (posedge Clk_SYS or posedge Reset)
 assign  Packet_number_add_edge=Packet_number_add_dl1&!Packet_number_add_dl2;
 
 always @ (Current_state_SYS or Next_state_SYS)
-    if (Current_state_SYS==SYS_read&&Next_state_SYS==SYS_wait_end)
+    if (Current_state_SYS==SYS_read&&Next_state_SYS==SYS_idle)
         Packet_number_sub       =1;
     else
         Packet_number_sub       =0;
@@ -590,21 +611,30 @@ always @ (posedge Clk_SYS or posedge Reset)
         Rx_Lwmark_pl        <=Rx_Lwmark;
         end   
         
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)  
-        Rx_mac_ra   <=0;
-    else if (Packet_number_inFF==0&&Fifo_data_count<=Rx_Lwmark_pl)
-        Rx_mac_ra   <=0;
-    else if (Packet_number_inFF>=1||Fifo_data_count>=Rx_Hwmark_pl)
-        Rx_mac_ra   <=1;
+always @ (*)
+    if (Packet_number_inFF==0&&Fifo_data_count<=Rx_Lwmark_pl)
+        Rx_mac_ra   =1'b0;
+    else 
+        Rx_mac_ra   =1'b1;
 
-        
+
+
+always @ (posedge Clk_SYS or posedge Reset)
+    if (Reset) 
+		Rx_mac_rd	<=1'b0;
+	else if (Rx_mac_ra)
+		Rx_mac_rd	<=1'b1;
+	else if (Dout[35])
+		Rx_mac_rd	<=1'b0;
+ 
 //control Add_rd signal;
 always @ (posedge Clk_SYS or posedge Reset)
     if (Reset)
         Add_rd      <=0;
-    else if (Current_state_SYS==SYS_read&&!(Dout[35]&&Addr_freshed_ptr))  
-        Add_rd      <=Add_rd + 1;
+//	else if (Current_state_SYS==SYS_read&&M_AXIS_tready&&(Dout[35]&&Addr_freshed_ptr)) //duram read 2 cycles delay, so need jump back read pointer.
+//		Add_rd      <=Add_rd - 1;
+    else if (Current_state_SYS==SYS_read&&M_AXIS_tready)  
+        Add_rd      <=Add_rd + 1'b1;
 
 always @ (posedge Clk_SYS or posedge Reset)
     if (Reset)
@@ -661,16 +691,18 @@ always @ (posedge Clk_SYS or posedge Reset)
         Empty   <=0;
 
 
+assign  M_AXIS_tdata     =Dout[31:0];
+assign  M_AXIS_tlast     =Dout[35];
 
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)
-        Dout_dl1    <=0;
-    else
-        Dout_dl1    <=Dout; 
-
-assign  Rx_mac_data     =Dout_dl1[31:0];
-assign  Rx_mac_BE       =Dout_dl1[33:32];
-assign  Rx_mac_eop      =Dout_dl1[35];
+always @ (*)
+	case (Dout[33:32])
+		2'b00:	M_AXIS_tstrb =4'b1111;
+		2'b01:	M_AXIS_tstrb =4'b1000;
+		2'b10:	M_AXIS_tstrb =4'b1100;
+		2'b11:	M_AXIS_tstrb =4'b1110;
+		default:M_AXIS_tstrb =4'b1111;
+	endcase;
+		
 
 //aligned to Addr_rd 
 always @ (posedge Clk_SYS or posedge Reset) 
@@ -683,12 +715,15 @@ always @ (posedge Clk_SYS or posedge Reset)
 
 
 
-always @ (posedge Clk_SYS or posedge Reset) 
-    if (Reset)
-        Rx_mac_pa   <=0;
+always @ (*) 
+    if (Current_state_SYS==SYS_read)
+        M_AXIS_tvalid   =1'b1;
     else 
-        Rx_mac_pa   <=Rx_mac_pa_tmp;
-    
+        M_AXIS_tvalid   =1'b0;
+ 
+
+assign 			M_AXIS_tdest      	=1'b0;
+assign 			M_AXIS_tid        	=1'b0; 
 
     
 always @ (posedge Clk_SYS or posedge Reset)
@@ -700,7 +735,7 @@ always @ (posedge Clk_SYS or posedge Reset)
         Rx_mac_sop_tmp      <=0;
         
 
-        
+/*        
 always @ (posedge Clk_SYS or posedge Reset)
     if (Reset)
         begin
@@ -712,7 +747,7 @@ always @ (posedge Clk_SYS or posedge Reset)
         Rx_mac_sop_tmp_dl1  <=Rx_mac_sop_tmp;
         Rx_mac_sop          <=Rx_mac_sop_tmp_dl1;
         end
-
+*/
 
 
 //******************************************************************************
@@ -720,7 +755,8 @@ always @ (posedge Clk_SYS or posedge Reset)
 duram #(36,`MAC_RX_FF_DEPTH,"auto") U_duram(          
 .data_a         (Din        ), 
 .wren_a         (Wr_en      ), 
-.address_a      (Add_wr     ), 
+.address_a      (Add_wr     ),
+.wren_b         (1'b0       ), 
 .address_b      (Add_rd     ), 
 .clock_a        (Clk_MAC    ), 
 .clock_b        (Clk_SYS    ), 

@@ -35,6 +35,20 @@ add_files {
  ../rtl/verilog/Phy_int.v 
  ../rtl/verilog/MAC_rx.v}
  
+ set_property IS_GLOBAL_INCLUDE 1 [get_files -all ../rtl/verilog/header.v]
+ set_property IS_GLOBAL_INCLUDE 1 [get_files -all ../rtl/verilog/miim/timescale.v]
+ 
+add_files -fileset sim_1 -norecurse {
+../bench/verilog/Phy_sim.v 
+../bench/verilog/User_int_sim.sv 
+../bench/verilog/host_sim.v 
+../bench/verilog/tb_top.v 
+../bench/verilog/rst_clk_gen.v 
+../bench/verilog/reg_int_sim.v}
+
+update_compile_order -fileset sim_1
+update_compile_order -fileset sim_1
+ 
  
 set_property is_global_include true [get_files ../rtl/verilog/header.v]
 set_property is_global_include true [get_files ../rtl/verilog/miim/timescale.v]
@@ -42,3 +56,4 @@ set_property is_global_include true [get_files ../rtl/verilog/miim/timescale.v]
 update_compile_order -fileset sources_1
 update_compile_order -fileset sources_1
 
+set_property include_dirs ..//bench/verilog/IP_gen_chk/tb [current_fileset]

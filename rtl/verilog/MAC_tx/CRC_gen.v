@@ -76,7 +76,7 @@ reg             CRC_end;
 reg [3:0]       Counter;
 //******************************************************************************
 //******************************************************************************
-//input data width is 8bit, and the first bit is bit[0]
+//input_data width is 8bit, and the first bit is bit[0]
 function[31:0]  NextCRC;
     input[7:0]      D;
     input[31:0]     C;

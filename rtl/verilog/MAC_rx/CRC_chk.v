@@ -59,7 +59,7 @@ CRC_err
 );
 input       Reset       ;
 input       Clk         ;
-input[7:0]  CRC_data    ;
+input [7:0] CRC_data    ;
 input       CRC_init    ;
 input       CRC_en      ;
             //From CPU
@@ -71,7 +71,7 @@ output      CRC_err     ;
 reg [31:0]  CRC_reg;
 wire[31:0]  Next_CRC;
 //******************************************************************************
-//input data width is 8bit, and the first bit is bit[0]
+//input_data width is 8bit, and the first bit is bit[0]
 function[31:0]  NextCRC;
     input[7:0]      D;
     input[31:0]     C;

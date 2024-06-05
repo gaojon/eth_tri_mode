@@ -1,11 +1,25 @@
 module Reg_int (
-input                   Reset                   ,
-input                   Clk_reg                 ,
-input                   CSB                     ,
-input                   WRB                     ,
-input           [15:0]  CD_in                   ,
-output   reg    [15:0]  CD_out                  ,
-input           [7:0]   CA                      ,
+
+
+input 			[31:0]	S_AXI_araddr			,
+output 					S_AXI_arready         	,
+input 					S_AXI_arvalid         	,
+input 			[31:0]	S_AXI_awaddr          	,
+output 					S_AXI_awready         	,
+input 					S_AXI_awvalid         	,
+input 					S_AXI_bready          	,
+output 			[1:0]	S_AXI_bresp           	,
+output 	reg				S_AXI_bvalid          	,
+output 	reg		[31:0]	S_AXI_rdata           	,
+input 					S_AXI_rready          	,
+output 			[1:0]	S_AXI_rresp           	,
+output 	reg				S_AXI_rvalid          	,
+input 			[31:0]	S_AXI_wdata           	,
+output 					S_AXI_wready          	,
+input 					S_AXI_wvalid          	,
+input 					aclk                    ,
+input 					Reset                   ,
+
                         //Tx host interface 
 output          [4:0]   Tx_Hwmark               ,
 output          [4:0]   Tx_Lwmark               ,   
@@ -62,83 +76,194 @@ input                   RStatStart              ,// This signal resets the RSTAT
 input                   UpdateMIIRX_DATAReg     // Updates MII RX_DATA register with read data
 );
 
-    RegCPUData U_0_000(Tx_Hwmark                ,7'd000,16'h0009,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_001(Tx_Lwmark                ,7'd001,16'h0008,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_002(pause_frame_send_en      ,7'd002,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_003(pause_quanta_set         ,7'd003,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_004(IFGset                   ,7'd004,16'h000c,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_005(FullDuplex               ,7'd005,16'h0001,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_006(MaxRetry                 ,7'd006,16'h0002,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_007(MAC_tx_add_en            ,7'd007,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_008(MAC_tx_add_prom_data     ,7'd008,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_009(MAC_tx_add_prom_add      ,7'd009,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_010(MAC_tx_add_prom_wr       ,7'd010,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_011(tx_pause_en              ,7'd011,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_012(xoff_cpu                 ,7'd012,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_013(xon_cpu                  ,7'd013,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_014(MAC_rx_add_chk_en        ,7'd014,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_015(MAC_rx_add_prom_data     ,7'd015,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_016(MAC_rx_add_prom_add      ,7'd016,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_017(MAC_rx_add_prom_wr       ,7'd017,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_018(broadcast_filter_en      ,7'd018,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_019(broadcast_bucket_depth   ,7'd019,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_020(broadcast_bucket_interval,7'd020,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_021(RX_APPEND_CRC            ,7'd021,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_022(Rx_Hwmark                ,7'd022,16'h001a,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_023(Rx_Lwmark                ,7'd023,16'h0010,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_024(CRC_chk_en               ,7'd024,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_025(RX_IFG_SET               ,7'd025,16'h000c,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_026(RX_MAX_LENGTH            ,7'd026,16'h2710,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_027(RX_MIN_LENGTH            ,7'd027,16'h0040,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_028(CPU_rd_addr              ,7'd028,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_029(CPU_rd_apply             ,7'd029,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-//  RegCPUData U_0_030(CPU_rd_grant             ,7'd030,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-//  RegCPUData U_0_031(CPU_rd_dout_l            ,7'd031,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-//  RegCPUData U_0_032(CPU_rd_dout_h            ,7'd032,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_033(Line_loop_en             ,7'd033,16'h0000,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
-    RegCPUData U_0_034(Speed                    ,7'd034,16'h0004,Reset,Clk_reg,!WRB,CSB,CA,CD_in);
 
-always @ (posedge Clk_reg or posedge Reset)
+
+reg                   	wr_en                    ;
+reg                   	wr_start                 ;
+reg						rd_start                 ;
+reg						rd_en                    ;
+
+
+
+reg           	[15:0]  CD_in                    ;
+reg           	[8:0]   awaddr                   ;
+
+wire					Reset                    ;
+
+reg             [8:0]   araddr                   ;
+
+
+
+assign S_AXI_awready 	=1'b1 	;   
+assign S_AXI_wready	=1'b1	;
+assign S_AXI_bresp    =2'b00 	;     
+assign S_AXI_arready 	=1'b1   ;   
+
+
+
+always @ (posedge aclk or posedge Reset)
+	if (Reset)
+		awaddr	<=0;
+	else if (S_AXI_awvalid)
+		awaddr	<= S_AXI_awaddr[8:0];
+
+always @ (posedge aclk or posedge Reset)
+	if (Reset)
+		CD_in	<=0;
+	else if (S_AXI_wvalid)
+		CD_in = S_AXI_wdata[15:0];
+
+
+always @ (posedge aclk or posedge Reset)
+	if (Reset)
+		wr_en	<=1'b0;
+	else if (S_AXI_wvalid)
+		wr_en	<=1'b1;
+	else	
+		wr_en	<=1'b0;
+
+
+
+always @ (posedge aclk or posedge Reset)
+	if (Reset)
+		wr_start	<=1'b0;
+	else if (S_AXI_wvalid)
+		wr_start	<=1'b1;
+	else if (S_AXI_bvalid)	
+		wr_start	<=1'b0;		
+		
+		
+//write response 
+
+always @ (posedge aclk or posedge Reset)
+	if (Reset)
+		S_AXI_bvalid<=1'b0;
+	else if (wr_en && S_AXI_bready)
+		S_AXI_bvalid<=1'b1;
+	else
+		S_AXI_bvalid<=1'b0;
+
+
+
+
+
+    RegCPUData U_000(Tx_Hwmark                ,7'd000,16'h0009,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_001(Tx_Lwmark                ,7'd001,16'h0008,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_002(pause_frame_send_en      ,7'd002,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_003(pause_quanta_set         ,7'd003,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_004(IFGset                   ,7'd004,16'h000c,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_005(FullDuplex               ,7'd005,16'h0001,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_006(MaxRetry                 ,7'd006,16'h0002,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_007(MAC_tx_add_en            ,7'd007,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_008(MAC_tx_add_prom_data     ,7'd008,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_009(MAC_tx_add_prom_add      ,7'd009,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_010(MAC_tx_add_prom_wr       ,7'd010,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_011(tx_pause_en              ,7'd011,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_012(xoff_cpu                 ,7'd012,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_013(xon_cpu                  ,7'd013,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_014(MAC_rx_add_chk_en        ,7'd014,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_015(MAC_rx_add_prom_data     ,7'd015,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_016(MAC_rx_add_prom_add      ,7'd016,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_017(MAC_rx_add_prom_wr       ,7'd017,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_018(broadcast_filter_en      ,7'd018,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_019(broadcast_bucket_depth   ,7'd019,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_020(broadcast_bucket_interval,7'd020,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_021(RX_APPEND_CRC            ,7'd021,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_022(Rx_Hwmark                ,7'd022,16'h001a,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_023(Rx_Lwmark                ,7'd023,16'h0010,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_024(CRC_chk_en               ,7'd024,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_025(RX_IFG_SET               ,7'd025,16'h000c,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_026(RX_MAX_LENGTH            ,7'd026,16'h2710,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_027(RX_MIN_LENGTH            ,7'd027,16'h0040,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_028(CPU_rd_addr              ,7'd028,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_029(CPU_rd_apply             ,7'd029,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+//  RegCPUData U_030(CPU_rd_grant             ,7'd030,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+//  RegCPUData U_031(CPU_rd_dout_l            ,7'd031,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+//  RegCPUData U_032(CPU_rd_dout_h            ,7'd032,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_033(Line_loop_en             ,7'd033,16'h0000,Reset,aclk,wr_en,awaddr,CD_in);
+    RegCPUData U_034(Speed                    ,7'd034,16'h0004,Reset,aclk,wr_en,awaddr,CD_in);
+
+
+
+
+
+
+
+always @ (posedge aclk or posedge Reset)
+	if (Reset)
+		araddr	<=0;
+	else if (S_AXI_arvalid)
+		araddr	<=S_AXI_araddr;
+		
+
+always @ (posedge aclk or posedge Reset)
+	if (Reset)
+		rd_en			<=1'b0;
+	else if (S_AXI_arvalid)	
+		rd_en			<=1'b1;
+	else	
+		rd_en			<=1'b0;
+		
+		
+always @ (posedge aclk or posedge Reset)
+	if (Reset)
+		rd_start		<=1'b0;
+	else if (S_AXI_arvalid)
+		rd_start		<=1'b1;
+	else if (S_AXI_rvalid)
+		rd_start		<=1'b0;
+
+always @ (posedge aclk or posedge Reset)
+	if (Reset)	
+		S_AXI_rvalid	<=1'b0;
+	else if (rd_start && S_AXI_rready)
+		S_AXI_rvalid	<=1'b1;
+	else
+		S_AXI_rvalid	<=1'b0;
+
+		
+
+always @ (posedge aclk or posedge Reset)
     if (Reset)
-        CD_out  <=0;
-    else if (!CSB&&WRB)
-        case (CA[7:1])
-                7'd00:    CD_out<=Tx_Hwmark                  ;
-                7'd01:    CD_out<=Tx_Lwmark                  ; 
-                7'd02:    CD_out<=pause_frame_send_en        ; 
-                7'd03:    CD_out<=pause_quanta_set           ;
-                7'd04:    CD_out<=IFGset                     ; 
-                7'd05:    CD_out<=FullDuplex                 ; 
-                7'd06:    CD_out<=MaxRetry                   ;
-                7'd07:    CD_out<=MAC_tx_add_en              ; 
-                7'd08:    CD_out<=MAC_tx_add_prom_data       ;
-                7'd09:    CD_out<=MAC_tx_add_prom_add        ; 
-                7'd10:    CD_out<=MAC_tx_add_prom_wr         ; 
-                7'd11:    CD_out<=tx_pause_en                ; 
-                7'd12:    CD_out<=xoff_cpu                   ;
-                7'd13:    CD_out<=xon_cpu                    ; 
-                7'd14:    CD_out<=MAC_rx_add_chk_en          ; 
-                7'd15:    CD_out<=MAC_rx_add_prom_data       ;
-                7'd16:    CD_out<=MAC_rx_add_prom_add        ; 
-                7'd17:    CD_out<=MAC_rx_add_prom_wr         ; 
-                7'd18:    CD_out<=broadcast_filter_en        ; 
-                7'd19:    CD_out<=broadcast_bucket_depth     ;    
-                7'd20:    CD_out<=broadcast_bucket_interval  ;   
-                7'd21:    CD_out<=RX_APPEND_CRC              ; 
-                7'd22:    CD_out<=Rx_Hwmark                  ; 
-                7'd23:    CD_out<=Rx_Lwmark                  ; 
-                7'd24:    CD_out<=CRC_chk_en                 ; 
-                7'd25:    CD_out<=RX_IFG_SET                 ; 
-                7'd26:    CD_out<=RX_MAX_LENGTH              ; 
-                7'd27:    CD_out<=RX_MIN_LENGTH              ; 
-                7'd28:    CD_out<=CPU_rd_addr                ; 
-                7'd29:    CD_out<=CPU_rd_apply               ;
-                7'd30:    CD_out<=CPU_rd_grant               ;
-                7'd31:    CD_out<=CPU_rd_dout[15:0]          ; 
-                7'd32:    CD_out<=CPU_rd_dout[31:16]         ;                 
-                7'd33:    CD_out<=Line_loop_en               ;
-                7'd34:    CD_out<=Speed                      ; 
-                default:  CD_out<=0                          ;
+        S_AXI_rdata  <=0;
+    else if (rd_en)
+        case (araddr[8:2])
+                7'd00:    S_AXI_rdata<=Tx_Hwmark                  ;
+                7'd01:    S_AXI_rdata<=Tx_Lwmark                  ; 
+                7'd02:    S_AXI_rdata<=pause_frame_send_en        ; 
+                7'd03:    S_AXI_rdata<=pause_quanta_set           ;
+                7'd04:    S_AXI_rdata<=IFGset                     ; 
+                7'd05:    S_AXI_rdata<=FullDuplex                 ; 
+                7'd06:    S_AXI_rdata<=MaxRetry                   ;
+                7'd07:    S_AXI_rdata<=MAC_tx_add_en              ; 
+                7'd08:    S_AXI_rdata<=MAC_tx_add_prom_data       ;
+                7'd09:    S_AXI_rdata<=MAC_tx_add_prom_add        ; 
+                7'd10:    S_AXI_rdata<=MAC_tx_add_prom_wr         ; 
+                7'd11:    S_AXI_rdata<=tx_pause_en                ; 
+                7'd12:    S_AXI_rdata<=xoff_cpu                   ;
+                7'd13:    S_AXI_rdata<=xon_cpu                    ; 
+                7'd14:    S_AXI_rdata<=MAC_rx_add_chk_en          ; 
+                7'd15:    S_AXI_rdata<=MAC_rx_add_prom_data       ;
+                7'd16:    S_AXI_rdata<=MAC_rx_add_prom_add        ; 
+                7'd17:    S_AXI_rdata<=MAC_rx_add_prom_wr         ; 
+                7'd18:    S_AXI_rdata<=broadcast_filter_en        ; 
+                7'd19:    S_AXI_rdata<=broadcast_bucket_depth     ;    
+                7'd20:    S_AXI_rdata<=broadcast_bucket_interval  ;   
+                7'd21:    S_AXI_rdata<=RX_APPEND_CRC              ; 
+                7'd22:    S_AXI_rdata<=Rx_Hwmark                  ; 
+                7'd23:    S_AXI_rdata<=Rx_Lwmark                  ; 
+                7'd24:    S_AXI_rdata<=CRC_chk_en                 ; 
+                7'd25:    S_AXI_rdata<=RX_IFG_SET                 ; 
+                7'd26:    S_AXI_rdata<=RX_MAX_LENGTH              ; 
+                7'd27:    S_AXI_rdata<=RX_MIN_LENGTH              ; 
+                7'd28:    S_AXI_rdata<=CPU_rd_addr                ; 
+                7'd29:    S_AXI_rdata<=CPU_rd_apply               ;
+                7'd30:    S_AXI_rdata<=CPU_rd_grant               ;
+                7'd31:    S_AXI_rdata<=CPU_rd_dout[15:0]          ; 
+                7'd32:    S_AXI_rdata<=CPU_rd_dout[31:16]         ;                 
+                7'd33:    S_AXI_rdata<=Line_loop_en               ;
+                7'd34:    S_AXI_rdata<=Speed                      ; 
+                default:  S_AXI_rdata<=0                          ;
         endcase
 
 
@@ -146,25 +271,24 @@ endmodule
 
 module RegCPUData(
 RegOut,   
-CA_reg_set, 
+awaddr_reg_set, 
 RegInit,  
           
 Reset,    
 Clk,      
 CWR_pulse,
-CCSB,
-CA_reg,     
+awaddr_reg,     
 CD_in_reg
 );
 output[15:0]    RegOut; 
-input[6:0]      CA_reg_set;  
+input[6:0]      awaddr_reg_set;  
 input[15:0]     RegInit;
 //
 input           Reset;
 input           Clk;
 input           CWR_pulse;
-input           CCSB;
-input[7:0]      CA_reg;
+
+input[8:0]      awaddr_reg;
 input[15:0]     CD_in_reg;
 // 
 reg[15:0]       RegOut; 
@@ -172,7 +296,7 @@ reg[15:0]       RegOut;
 always  @(posedge Reset or posedge Clk)
     if(Reset)
         RegOut      <=RegInit;
-    else if (CWR_pulse && !CCSB && CA_reg[7:1] ==CA_reg_set[6:0])  
+    else if (CWR_pulse && awaddr_reg[8:2] ==awaddr_reg_set[6:0])  
         RegOut      <=CD_in_reg;
 
 endmodule           

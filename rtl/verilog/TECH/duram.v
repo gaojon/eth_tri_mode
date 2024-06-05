@@ -52,8 +52,8 @@ output  [DATA_WIDTH -1:0]   q_b;
       .RAM_DECOMP("auto"),            // String
       .READ_DATA_WIDTH_A(DATA_WIDTH),         // DECIMAL
       .READ_DATA_WIDTH_B(DATA_WIDTH),         // DECIMAL
-      .READ_LATENCY_A(2),             // DECIMAL
-      .READ_LATENCY_B(2),             // DECIMAL
+      .READ_LATENCY_A(0),             // DECIMAL
+      .READ_LATENCY_B(0),             // DECIMAL
       .READ_RESET_VALUE_A("0"),       // String
       .READ_RESET_VALUE_B("0"),       // String
       .RST_MODE_A("SYNC"),            // String

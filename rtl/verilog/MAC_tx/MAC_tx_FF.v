@@ -1,60 +1,4 @@
-//////////////////////////////////////////////////////////////////////
-////                                                              ////
-////  MAC_tx_FF.v                                                 ////
-////                                                              ////
-////  This file is part of the Ethernet IP core project           ////
-////  http://www.opencores.org/projects.cgi/web/ethernet_tri_mode/////
-////                                                              ////
-////  Author(s):                                                  ////
-////      - Jon Gao (gaojon@yahoo.com)                            ////
-////                                                              ////
-////                                                              ////
-//////////////////////////////////////////////////////////////////////
-////                                                              ////
-//// Copyright (C) 2001 Authors                                   ////
-////                                                              ////
-//// This source file may be used and distributed without         ////
-//// restriction provided that this copyright statement is not    ////
-//// removed from the file and that any derivative work contains  ////
-//// the original copyright notice and the associated disclaimer. ////
-////                                                              ////
-//// This source file is free software; you can redistribute it   ////
-//// and/or modify it under the terms of the GNU Lesser General   ////
-//// Public License as published by the Free Software Foundation; ////
-//// either version 2.1 of the License, or (at your option) any   ////
-//// later version.                                               ////
-////                                                              ////
-//// This source is distributed in the hope that it will be       ////
-//// useful, but WITHOUT ANY WARRANTY; without even the implied   ////
-//// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR      ////
-//// PURPOSE.  See the GNU Lesser General Public License for more ////
-//// details.                                                     ////
-////                                                              ////
-//// You should have received a copy of the GNU Lesser General    ////
-//// Public License along with this source; if not, download it   ////
-//// from http://www.opencores.org/lgpl.shtml                     ////
-////                                                              ////
-//////////////////////////////////////////////////////////////////////
-//                                                                    
-// CVS Revision History                                               
-//                                                                    
-// $Log: not supported by cvs2svn $
-// Revision 1.4  2006/05/28 05:09:20  maverickist
-// no message
-//
-// Revision 1.3  2006/01/19 14:07:54  maverickist
-// verification is complete.
-//
-// Revision 1.3  2005/12/16 06:44:18  Administrator
-// replaced tab with space.
-// passed 9.6k length frame test.
-//
-// Revision 1.2  2005/12/13 12:15:39  Administrator
-// no message
-//
-// Revision 1.1.1.1  2005/12/13 01:51:45  Administrator
-// no message
-//                                           
+                                      
 
 module MAC_tx_FF ( 
 Reset               ,      
@@ -71,12 +15,13 @@ Fifo_ra             ,
 Fifo_data_err_empty ,
 Fifo_data_err_full  ,
 //user interface          
-Tx_mac_wa           ,
-Tx_mac_wr           ,
-Tx_mac_data         ,
-Tx_mac_BE           ,
-Tx_mac_sop          ,
-Tx_mac_eop          ,
+S_AXIS_tready        ,
+S_AXIS_tvalid        ,
+S_AXIS_tdata         ,
+S_AXIS_tstrb         ,
+S_AXIS_tlast         ,
+S_AXIS_tdest		 ,
+S_AXIS_tid			 ,
 //host interface   
 FullDuplex          ,
 Tx_Hwmark           ,         
@@ -97,12 +42,15 @@ output          Fifo_ra             ;
 output          Fifo_data_err_empty ;
 output          Fifo_data_err_full  ;
                 //user interface 
-output          Tx_mac_wa           ;
-input           Tx_mac_wr           ;
-input   [31:0]  Tx_mac_data         ;
-input   [1:0]   Tx_mac_BE           ;//big endian
-input           Tx_mac_sop          ;
-input           Tx_mac_eop          ;
+output          S_AXIS_tready       ;
+input           S_AXIS_tvalid       ;
+input   [31:0]  S_AXIS_tdata        ;
+input [3:0]		S_AXIS_tstrb      	;
+input           S_AXIS_tlast        ;
+	
+input 			S_AXIS_tdest      	;
+input 			S_AXIS_tid        	;
+
                 //host interface 
 input           FullDuplex          ;
 input   [4:0]   Tx_Hwmark           ;
@@ -164,12 +112,12 @@ reg             Full            /* synthesis syn_keep=1 */;
 reg             AlmostFull      /* synthesis syn_keep=1 */;
 reg             Empty           /* synthesis syn_keep=1 */;
 
-reg             Tx_mac_wa           ;
-reg             Tx_mac_wr_dl1           ;
-reg [31:0]      Tx_mac_data_dl1         ;
+reg             S_AXIS_tready           ;
+reg             S_AXIS_tvalid_dl1           ;
+reg [31:0]      S_AXIS_tdata_dl1         ;
 reg [1:0]       Tx_mac_BE_dl1           ;
-reg             Tx_mac_sop_dl1          ;
-reg             Tx_mac_eop_dl1          ;
+
+reg             S_AXIS_tlast_dl1          ;
 reg             FF_FullErr              ;
 wire[1:0]       Dout_BE                 ;
 wire            Dout_eop                ;
@@ -204,6 +152,9 @@ reg             Add_rd_jump             ;
 reg             Add_rd_jump_wr_pl1      ;
 
 integer         i                       ;
+
+reg   [1:0]   	Tx_mac_BE           ;//big endian
+reg				Tx_mac_sop			;
 //******************************************************************************
 //write data to from FF .
 //domain Clk_SYS
@@ -214,11 +165,11 @@ always @ (posedge Clk_SYS or posedge Reset)
     else
         Current_state_SYS   <=Next_state_SYS;
         
-always @ (Current_state_SYS or Tx_mac_wr or Tx_mac_sop or Full or AlmostFull 
-            or Tx_mac_eop )
+always @ (Current_state_SYS or S_AXIS_tvalid or Tx_mac_sop or Full or AlmostFull 
+            or S_AXIS_tlast )
     case (Current_state_SYS)
         SYS_idle:
-            if (Tx_mac_wr&&Tx_mac_sop&&!Full)
+            if (S_AXIS_tvalid&&Tx_mac_sop&&!Full)
                 Next_state_SYS      =SYS_SOP;
             else
                 Next_state_SYS      =Current_state_SYS ;
@@ -227,51 +178,66 @@ always @ (Current_state_SYS or Tx_mac_wr or Tx_mac_sop or Full or AlmostFull
         SYS_MOP:
             if (AlmostFull)
                 Next_state_SYS      =SYS_DROP;
-            else if (Tx_mac_wr&&Tx_mac_sop)
+            else if (S_AXIS_tvalid&&Tx_mac_sop)
                 Next_state_SYS      =SYS_SOP_err;
-            else if (Tx_mac_wr&&Tx_mac_eop)
+            else if (S_AXIS_tvalid&&S_AXIS_tlast)
                 Next_state_SYS      =SYS_EOP_ok;
             else
                 Next_state_SYS      =Current_state_SYS ;
         SYS_EOP_ok:
-            if (Tx_mac_wr&&Tx_mac_sop)
+            if (S_AXIS_tvalid&&Tx_mac_sop)
                 Next_state_SYS      =SYS_SOP;
             else
                 Next_state_SYS      =SYS_idle;
         SYS_EOP_err:
-            if (Tx_mac_wr&&Tx_mac_sop)
+            if (S_AXIS_tvalid&&Tx_mac_sop)
                 Next_state_SYS      =SYS_SOP;
             else
                 Next_state_SYS      =SYS_idle;
         SYS_SOP_err:
                 Next_state_SYS      =SYS_DROP;
         SYS_DROP: //FIFO overflow           
-            if (Tx_mac_wr&&Tx_mac_eop)
+            if (S_AXIS_tvalid&&S_AXIS_tlast)
                 Next_state_SYS      =SYS_EOP_err;
             else 
                 Next_state_SYS      =Current_state_SYS ;
         default:
                 Next_state_SYS      =SYS_idle;
     endcase
+	
+always @ (*)
+if (Current_state_SYS==SYS_idle&&S_AXIS_tvalid||Current_state_SYS==SYS_EOP_ok&&S_AXIS_tvalid)
+		Tx_mac_sop	<=1'b1;
+	else 
+		Tx_mac_sop	<=1'b0;
     
 //delay signals 
 always @ (posedge Clk_SYS or posedge Reset)
     if (Reset)
         begin       
-        Tx_mac_wr_dl1           <=0;
-        Tx_mac_data_dl1         <=0;
-        Tx_mac_BE_dl1           <=0;
-        Tx_mac_sop_dl1          <=0;
-        Tx_mac_eop_dl1          <=0;
+        S_AXIS_tvalid_dl1           <=0;
+        S_AXIS_tdata_dl1         <=0;
+        S_AXIS_tlast_dl1          <=0;
         end  
     else
         begin       
-        Tx_mac_wr_dl1           <=Tx_mac_wr     ;
-        Tx_mac_data_dl1         <=Tx_mac_data   ;
-        Tx_mac_BE_dl1           <=Tx_mac_BE     ;
-        Tx_mac_sop_dl1          <=Tx_mac_sop    ;
-        Tx_mac_eop_dl1          <=Tx_mac_eop    ;
+        S_AXIS_tvalid_dl1           <=S_AXIS_tvalid     ;
+        S_AXIS_tdata_dl1         <=S_AXIS_tdata   ;
+        S_AXIS_tlast_dl1          <=S_AXIS_tlast    ;
         end 
+		
+always @ (posedge Clk_SYS or posedge Reset)
+    if (Reset)	
+		Tx_mac_BE_dl1           <=0;
+	else
+		case (S_AXIS_tstrb	)
+			4'b1111	:	Tx_mac_BE_dl1 <=2'b00;
+			4'b1000	:	Tx_mac_BE_dl1 <=2'b01;
+			4'b1100	:	Tx_mac_BE_dl1 <=2'b10;
+			4'b1110	:	Tx_mac_BE_dl1 <=2'b11;
+			default :	Tx_mac_BE_dl1 <=2'b00;
+		endcase
+			
 
 always @(Current_state_SYS) 
     if (Current_state_SYS==SYS_EOP_err)
@@ -279,19 +245,19 @@ always @(Current_state_SYS)
     else
         FF_FullErr      =0; 
 
-reg     Tx_mac_eop_gen;
+reg     S_AXIS_tlast_gen;
 
 always @(Current_state_SYS) 
     if (Current_state_SYS==SYS_EOP_err||Current_state_SYS==SYS_EOP_ok)
-        Tx_mac_eop_gen      =1;
+        S_AXIS_tlast_gen      =1;
     else
-        Tx_mac_eop_gen      =0; 
+        S_AXIS_tlast_gen      =0; 
                 
-assign  Din={Tx_mac_eop_gen,FF_FullErr,Tx_mac_BE_dl1,Tx_mac_data_dl1};
+assign  Din={S_AXIS_tlast_gen,FF_FullErr,Tx_mac_BE_dl1,S_AXIS_tdata_dl1};
 
-always @(Current_state_SYS or Tx_mac_wr_dl1)
+always @(Current_state_SYS or S_AXIS_tvalid_dl1)
     if ((Current_state_SYS==SYS_SOP||Current_state_SYS==SYS_EOP_ok||
-        Current_state_SYS==SYS_MOP||Current_state_SYS==SYS_EOP_err)&&Tx_mac_wr_dl1)
+        Current_state_SYS==SYS_MOP||Current_state_SYS==SYS_EOP_err)&&S_AXIS_tvalid_dl1)
         Wr_en   = 1;
     else
         Wr_en   = 0;
@@ -453,11 +419,11 @@ always @ (posedge Clk_SYS or posedge Reset)
     
 always @ (posedge Clk_SYS or posedge Reset)
     if (Reset)
-        Tx_mac_wa   <=0;  
+        S_AXIS_tready   <=0;  
     else if (Fifo_data_count>=Tx_Hwmark_pl)
-        Tx_mac_wa   <=0;
+        S_AXIS_tready   <=0;
     else if (Fifo_data_count<Tx_Lwmark_pl)
-        Tx_mac_wa   <=1;
+        S_AXIS_tready   <=1;
 
 //******************************************************************************
 
@@ -782,6 +748,7 @@ duram #(36,`MAC_TX_FF_DEPTH,"auto") U_duram(
 .data_a         (Din        ), 
 .wren_a         (Wr_en      ), 
 .address_a      (Add_wr     ), 
+.wren_b			(1'b0		),
 .address_b      (Add_rd     ), 
 .clock_a        (Clk_SYS    ), 
 .clock_b        (Clk_MAC    ), 

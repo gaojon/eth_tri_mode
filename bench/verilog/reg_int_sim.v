@@ -93,7 +93,7 @@ input        	Nvalid             		,// Invalid Status (qualifier for the valid s
 input 	[15:0] 	Prsd               		,// Read Status Data (data read from the PHY)
 input        	WCtrlDataStart     		,// This signals resets the WCTRLDATA bit in the MIIM Command register
 input        	RStatStart         		,// This signal resets the RSTAT BIT in the MIIM Command register
-input        	UpdateMIIRX_DATAReg		,// Updates MII RX_DATA register with read data
+input        	UpdateMIIRX_DATAReg		 // Updates MII RX_DATA register with read data
 );
 
 assign Tx_Hwmark				    	=5'h1e;
