@@ -255,12 +255,14 @@ always @(Current_state_SYS)
                 
 assign  Din={S_AXIS_tlast_gen,FF_FullErr,Tx_mac_BE_dl1,S_AXIS_tdata_dl1};
 
-always @(Current_state_SYS or S_AXIS_tvalid_dl1)
-    if ((Current_state_SYS==SYS_SOP||Current_state_SYS==SYS_EOP_ok||
-        Current_state_SYS==SYS_MOP||Current_state_SYS==SYS_EOP_err)&&S_AXIS_tvalid_dl1)
-        Wr_en   = 1;
+always @(posedge Clk_SYS or posedge Reset)
+	if (Reset)
+		Wr_en	<=0;
+    else if ((Next_state_SYS==SYS_SOP||Next_state_SYS==SYS_EOP_ok||
+        Next_state_SYS==SYS_MOP||Next_state_SYS==SYS_EOP_err)&&S_AXIS_tvalid&&S_AXIS_tready)
+        Wr_en   <= 1;
     else
-        Wr_en   = 0;
+        Wr_en   <= 0;
         
         
 //

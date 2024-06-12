@@ -1,0 +1,12 @@
+xvlog --incr --relax -L uvm -prj tb_top_vlog.prj 2>&1 | tee ../log/compile.log
+
+if test $? -ne 0
+then
+echo compiling err occured...
+exit 1
+fi
+
+
+xelab --incr --debug typical --relax --mt 8 -L xil_defaultlib -L uvm -L unisims_ver -L unimacro_ver -L secureip -L xpm --snapshot tb_top_behav xil_defaultlib.tb_top -log ../log/elaborate.log
+
+

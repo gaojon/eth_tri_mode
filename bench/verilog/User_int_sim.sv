@@ -45,18 +45,18 @@ always @ (posedge Reset or posedge Clk_user)
 		S_AXIS_tstrb	<=4'b0;
 		S_AXIS_tvalid	<=1'b0;
 		end			
-	else if (S_AXIS_tready&&CPU_init_end&&!packet_gen.gen_completed)
+	else if (S_AXIS_tready&&CPU_init_end)
 		begin
 		S_AXIS_tvalid	<=1'b1;
 		packet_gen.rd_data32(S_AXIS_tdata,S_AXIS_tstrb,S_AXIS_tlast);
 		end
-	else
-		begin
-		S_AXIS_tdata	<=32'b0;
-		S_AXIS_tlast	<=1'b0;
-		S_AXIS_tstrb	<=4'b0;
-		S_AXIS_tvalid	<=1'b0;
-		end
+//	else
+//		begin
+//		S_AXIS_tdata	<=32'b0;
+//		S_AXIS_tlast	<=1'b0;
+//		S_AXIS_tstrb	<=4'b0;
+//		S_AXIS_tvalid	<=1'b0;
+//		end
 
 always @ (posedge Reset or posedge Clk_user)
 	if (Reset)
