@@ -165,11 +165,10 @@ always @ (posedge Clk_SYS or posedge Reset)
     else
         Current_state_SYS   <=Next_state_SYS;
         
-always @ (Current_state_SYS or S_AXIS_tvalid or Tx_mac_sop or Full or AlmostFull 
-            or S_AXIS_tlast )
+always @ (*)
     case (Current_state_SYS)
         SYS_idle:
-            if (S_AXIS_tvalid&&Tx_mac_sop&&!Full)
+            if (S_AXIS_tvalid&&S_AXIS_tready&&Tx_mac_sop&&!Full)
                 Next_state_SYS      =SYS_SOP;
             else
                 Next_state_SYS      =Current_state_SYS ;
@@ -178,26 +177,30 @@ always @ (Current_state_SYS or S_AXIS_tvalid or Tx_mac_sop or Full or AlmostFull
         SYS_MOP:
             if (AlmostFull)
                 Next_state_SYS      =SYS_DROP;
-            else if (S_AXIS_tvalid&&Tx_mac_sop)
+            else if (S_AXIS_tvalid&&S_AXIS_tready&&Tx_mac_sop)
                 Next_state_SYS      =SYS_SOP_err;
-            else if (S_AXIS_tvalid&&S_AXIS_tlast)
+            else if (S_AXIS_tvalid&&S_AXIS_tready&&S_AXIS_tlast)
                 Next_state_SYS      =SYS_EOP_ok;
             else
                 Next_state_SYS      =Current_state_SYS ;
         SYS_EOP_ok:
-            if (S_AXIS_tvalid&&Tx_mac_sop)
+            if (S_AXIS_tvalid&&S_AXIS_tready&&Tx_mac_sop)
                 Next_state_SYS      =SYS_SOP;
-            else
+            else if (S_AXIS_tvalid&&S_AXIS_tready)
                 Next_state_SYS      =SYS_idle;
+            else
+                Next_state_SYS      =Current_state_SYS ;
         SYS_EOP_err:
-            if (S_AXIS_tvalid&&Tx_mac_sop)
+            if (S_AXIS_tvalid&&S_AXIS_tready&&Tx_mac_sop)
                 Next_state_SYS      =SYS_SOP;
-            else
+            else if (S_AXIS_tvalid&&S_AXIS_tready)
                 Next_state_SYS      =SYS_idle;
+            else
+                Next_state_SYS      =Current_state_SYS ;
         SYS_SOP_err:
                 Next_state_SYS      =SYS_DROP;
         SYS_DROP: //FIFO overflow           
-            if (S_AXIS_tvalid&&S_AXIS_tlast)
+            if (S_AXIS_tvalid&&S_AXIS_tready&&S_AXIS_tlast)
                 Next_state_SYS      =SYS_EOP_err;
             else 
                 Next_state_SYS      =Current_state_SYS ;

@@ -1,5 +1,5 @@
 # compile verilog/system verilog design source files
-verilog xil_defaultlib "/home/jung/ethernet_tri_mode/rtl/verilog/miim/timescale.v" "/home/jung/ethernet_tri_mode/rtl/verilog/header.v" \
+verilog xil_defaultlib "../../../../rtl/verilog/miim/timescale.v" "../../../../rtl/verilog/header.v" \
 -i "../../../../bench/verilog/IP_gen_chk/tb" \
 --include "../../../../rtl/verilog/miim" \
 --include "../../../../rtl/verilog" \
@@ -35,10 +35,10 @@ verilog xil_defaultlib "/home/jung/ethernet_tri_mode/rtl/verilog/miim/timescale.
 "../../../../rtl/verilog/reg_int.v" \
 "../../../../bench/verilog/rst_clk_gen.v" \
 
-sv xil_defaultlib "/home/jung/ethernet_tri_mode/rtl/verilog/miim/timescale.v" "/home/jung/ethernet_tri_mode/rtl/verilog/header.v" -i "../../../../bench/verilog/IP_gen_chk/tb" --include "../../../../rtl/verilog/miim" --include "../../../../rtl/verilog" \
+sv xil_defaultlib "../../../../rtl/verilog/miim/timescale.v" "../../../../rtl/verilog/header.v" -i "../../../../bench/verilog/IP_gen_chk/tb" --include "../../../../rtl/verilog/miim" --include "../../../../rtl/verilog" \
 "../../../../bench/verilog/User_int_sim.sv" \
 
-verilog xil_defaultlib "/home/jung/ethernet_tri_mode/rtl/verilog/miim/timescale.v" "/home/jung/ethernet_tri_mode/rtl/verilog/header.v" -i "../../../../bench/verilog/IP_gen_chk/tb" --include "../../../../rtl/verilog/miim" --include "../../../../rtl/verilog" \
+verilog xil_defaultlib "../../../../rtl/verilog/miim/timescale.v" "../../../../rtl/verilog/header.v" -i "../../../../bench/verilog/IP_gen_chk/tb" --include "../../../../rtl/verilog/miim" --include "../../../../rtl/verilog" \
 "../../../../bench/verilog/tb_top.v" \
 
 # compile glbl module

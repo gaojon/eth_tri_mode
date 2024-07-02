@@ -1,0 +1,29 @@
+The original design was public on opencores as https://opencores.org/projects/ethernet_tri_mode about 19 years ago. But I can't even download the full source code from this website anymore. So, I have to restart from here, https://github.com/freecores/ethernet_tri_mode. 
+
+The purpose of project is to migrate design to AXI stream interfaces for data flow and AXI lite interface for register accessing. The simulation DLLs which are used to generate and check packets have already been replaced by system verilog and shared with source code. Vivado simulator is the only simulator for this new release now. There is not a plan to support other simulators such as questa or ncsim. 
+
+The TK gui is still there and it will make it easier to config stimulus. 
+
+
+# Environment Setup 
+* Vivado 2023.2. Other release version should also work as well. 
+* tcl/tk for the gui support
+
+
+# clone the packet gen/check verification module
+
+```
+$cd eth_tri_mode/bench/verilog
+$git clone https://github.com/gaojon/IP_gen_chk
+
+$ ls IP_gen_chk/
+dut  sim  tb
+
+```
+
+# vefication through simulation
+
+Please refer to following PDF to go through the simulation. 
+
+[Tri-mode_Ethernet_MAC_Verification_plan.pdf](./doc/Tri-mode_Ethernet_MAC_Verification_plan.pdf)
+

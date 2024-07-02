@@ -15,4 +15,5 @@ echo elaborating err occured...
 exit 1
 fi
 
-xsim tb_top_behav -key {Behavioral:sim_1:Functional:tb_top} -tclbatch tb_top.tcl -log ../log/simulate.log $1
+#xsim tb_top_behav -key {Behavioral:sim_1:Functional:tb_top} -tclbatch tb_top.tcl -log ../log/simulate.log $1
+xsim tb_top_behav -key {Behavioral:sim_1:Functional:tb_top} --runall -log ../log/simulate.log $1

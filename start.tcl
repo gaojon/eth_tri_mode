@@ -5,7 +5,7 @@ variable MAC_TX_FF_DEPTH
 variable MAC_RX_FF_DEPTH
 variable header_data
 
-source sim/rtl_sim/ncsim_sim/script/run_proc.tcl
+source sim/rtl_sim/xsim/script/run_proc.tcl
 
 frame .f1
 frame .f2
@@ -165,7 +165,7 @@ proc save_header {} {
 }
 
 proc start_verify {} {
-    cd sim/rtl_sim/modsim_sim/script
+    cd sim/rtl_sim/xsim/script
     vish run.tcl
 }
 
@@ -175,6 +175,6 @@ proc start_syn {} {
 }
 
 proc run_sim {} {
-    cd sim/rtl_sim/modsim_sim/script/
+    cd sim/rtl_sim/xsim/script/
     run_proc
 }
