@@ -3,7 +3,7 @@
 //******************************************************************************
 module MAC_top ( 
 Speed                         ,
-Reset                         ,
+ResetB                        ,
 Clk_user                      ,
 M_AXIS_tdata                  ,
 M_AXIS_tdest                  ,
@@ -53,7 +53,7 @@ S_AXI_wdata                   ,
 S_AXI_wready                  ,
 S_AXI_wvalid                  );
 output  [2:0]                         Speed                         ;
-input                                 Reset                         ;
+input                                 ResetB                        ;
 input                                 Clk_user                      ;
 output  [31:0]                        M_AXIS_tdata                  ;
 output                                M_AXIS_tdest                  ;
@@ -180,7 +180,7 @@ wire                                  UpdateMIIRX_DATAReg           ;
 
 
 MAC_rx U_MAC_rx (
-.Reset                         (Reset                         ),
+.Reset                         (!ResetB                       ),
 .Clk                           (MAC_rx_clk_div                ),
 .MCrs_dv                       (MCrs_dv                       ),
 .MRxD                          (MRxD                          ),
@@ -217,7 +217,7 @@ MAC_rx U_MAC_rx (
 
 
 MAC_tx U_MAC_tx (
-.Reset                         (Reset                         ),
+.Reset                         (!ResetB                       ),
 .Clk                           (MAC_tx_clk_div                ),
 .TxD                           (MTxD                          ),
 .TxEn                          (MTxEn                         ),
@@ -254,7 +254,7 @@ MAC_tx U_MAC_tx (
 
 RMON U_RMON (
 .Clk                           (Clk_reg                       ),
-.Reset                         (Reset                         ),
+.Reset                         (!ResetB                       ),
 .Tx_pkt_type_rmon              (Tx_pkt_type_rmon              ),
 .Tx_pkt_length_rmon            (Tx_pkt_length_rmon            ),
 .Tx_apply_rmon                 (Tx_apply_rmon                 ),
@@ -271,7 +271,7 @@ RMON U_RMON (
 
 
 Phy_int U_Phy_int (
-.Reset                         (Reset                         ),
+.Reset                         (!ResetB                       ),
 .MAC_rx_clk                    (MAC_rx_clk                    ),
 .MAC_tx_clk                    (MAC_tx_clk                    ),
 .MCrs_dv                       (MCrs_dv                       ),
@@ -294,7 +294,7 @@ Phy_int U_Phy_int (
 
 
 Clk_ctrl U_Clk_ctrl (
-.Reset                         (Reset                         ),
+.Reset                         (!ResetB                       ),
 .Clk_125M                      (Clk_125M                      ),
 .Speed                         (Speed                         ),
 .Gtx_clk                       (Gtx_clk                       ),
@@ -309,7 +309,7 @@ Clk_ctrl U_Clk_ctrl (
 
 eth_miim U_eth_miim (
 .Clk                           (Clk_reg                       ),
-.Reset                         (Reset                         ),
+.Reset                         (!ResetB                       ),
 .Divider                       (Divider                       ),
 .CtrlData                      (CtrlData                      ),
 .Rgad                          (Rgad                          ),
@@ -351,7 +351,7 @@ Reg_int U_Reg_int (
 .S_AXI_wready                  (S_AXI_wready                  ),
 .S_AXI_wvalid                  (S_AXI_wvalid                  ),
 .aclk                          (Clk_reg                       ),
-.Reset                         (Reset                         ),
+.Reset                         (!ResetB                       ),
 .Tx_Hwmark                     (Tx_Hwmark                     ),
 .Tx_Lwmark                     (Tx_Lwmark                     ),
 .pause_frame_send_en           (pause_frame_send_en           ),

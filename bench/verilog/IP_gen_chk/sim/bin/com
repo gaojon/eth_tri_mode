@@ -1,0 +1,11 @@
+xvlog -sv ../../tb/tb_top.sv 
+xvlog ../../dut/axis_loop.v
+
+
+xelab tb_top -debug typical --log ../log/xelab.log
+
+if test $? -ne 0
+then
+echo Elabration error occured...
+exit 1
+fi

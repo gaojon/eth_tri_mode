@@ -1,0 +1,28 @@
+
+xvlog -sv "../../tb/tb_top.sv"
+
+xvlog "../../dut/axis_loop.v"
+
+
+xelab tb_top -debug typical --log ../log/xelab.log
+
+if test $? -ne 0
+then
+echo Elabration error occured...
+exit 1
+fi
+
+
+if test -f ../log/.sim_failed
+then
+	echo "../log/.sim_failed log file has been removed!"
+	rm ../log/.sim_failed
+fi
+
+if test -f ../log/.sim_succeed
+then
+	echo "../log/.sim_succeed log file has been removed!"
+	rm ../log/.sim_succeed
+fi
+
+xsim tb_top --runall --log ../log/xsim.log 

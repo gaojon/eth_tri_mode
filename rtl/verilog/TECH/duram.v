@@ -12,7 +12,6 @@ q_b);
 
 parameter integer DATA_WIDTH    = 36; 
 parameter integer ADDR_WIDTH    = 9;  
-parameter  MEMORY_PRIMITIVE     = "auto";
 parameter integer MEMORY_SIZE   = (2**ADDR_WIDTH)*DATA_WIDTH;
 
 
@@ -32,6 +31,7 @@ output  [DATA_WIDTH -1:0]   q_b;
  
  
    xpm_memory_tdpram #(
+ 
       .ADDR_WIDTH_A(ADDR_WIDTH),               // DECIMAL
       .ADDR_WIDTH_B(ADDR_WIDTH),               // DECIMAL
       .AUTO_SLEEP_TIME(0),            // DECIMAL
@@ -52,8 +52,8 @@ output  [DATA_WIDTH -1:0]   q_b;
       .RAM_DECOMP("auto"),            // String
       .READ_DATA_WIDTH_A(DATA_WIDTH),         // DECIMAL
       .READ_DATA_WIDTH_B(DATA_WIDTH),         // DECIMAL
-      .READ_LATENCY_A(0),             // DECIMAL
-      .READ_LATENCY_B(0),             // DECIMAL
+      .READ_LATENCY_A(1),             // DECIMAL
+      .READ_LATENCY_B(1),             // DECIMAL
       .READ_RESET_VALUE_A("0"),       // String
       .READ_RESET_VALUE_B("0"),       // String
       .RST_MODE_A("SYNC"),            // String
@@ -68,6 +68,8 @@ output  [DATA_WIDTH -1:0]   q_b;
       .WRITE_MODE_A("no_change"),     // String
       .WRITE_MODE_B("no_change"),     // String
       .WRITE_PROTECT(1)               // DECIMAL
+    
+
    )
    xpm_memory_tdpram_inst (
       .dbiterra(),             // 1-bit output: Status signal to indicate double bit error occurrence

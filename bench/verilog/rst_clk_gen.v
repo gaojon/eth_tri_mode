@@ -1,5 +1,5 @@
 module rst_clk_gen (
-output reg				Reset					,
+output reg				ResetB					,
 output reg				Clk_125M				,
 output reg				Clk_user				,
 output reg				Clk_reg				
@@ -10,8 +10,8 @@ output reg				Clk_reg
 
 initial 
 	begin
-			Reset	=1;
-	#20		Reset	=0;
+			ResetB	=0;
+	#20		ResetB	=1;
 	end
 always 
 	begin

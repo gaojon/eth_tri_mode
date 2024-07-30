@@ -47,8 +47,7 @@ always @ (posedge Reset or posedge Clk_user)
 		end			
 	else if (S_AXIS_tready&&CPU_init_end)
 		begin
-		S_AXIS_tvalid	<=1'b1;
-		packet_gen.rd_data32(S_AXIS_tdata,S_AXIS_tstrb,S_AXIS_tlast);
+		packet_gen.rd_data32(S_AXIS_tdata,S_AXIS_tstrb,S_AXIS_tlast,S_AXIS_tvalid);
 		end
 //	else
 //		begin
@@ -67,7 +66,7 @@ always @ (posedge Reset or posedge Clk_user)
 		
 			
 always @ (posedge Clk_user)
-	if (M_AXIS_tvalid)
+	if (M_AXIS_tvalid&&M_AXIS_tready)
 		packet_chk.wr_data32(M_AXIS_tdata,M_AXIS_tstrb,M_AXIS_tlast);
 	
 

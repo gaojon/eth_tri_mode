@@ -1,4 +1,4 @@
-                                      
+`include "header.v"                         
 
 module MAC_tx_FF ( 
 Reset               ,      
@@ -89,25 +89,25 @@ parameter       SYS_SOP_err             =4'd8;
 reg [3:0]       Current_state_SYS   /* synthesis syn_preserve =1 */;
 reg [3:0]       Next_state_SYS;
 
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_wr          ;
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_wr_ungray   ;
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_wr_gray     ;
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_wr_gray_dl1 ;
-wire[`MAC_RX_FF_DEPTH-1:0]       Add_wr_gray_tmp ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_wr          ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_wr_ungray   ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_wr_gray     ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_wr_gray_dl1 ;
+wire[`MAC_TX_FF_DEPTH-1:0]       Add_wr_gray_tmp ;
 
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_rd          ;
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_rd_reg      ;
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_rd_gray     ;
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_rd_gray_dl1 ;
-wire[`MAC_RX_FF_DEPTH-1:0]       Add_rd_gray_tmp ;
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_rd_ungray   ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_rd          ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_rd_reg      ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_rd_gray     ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_rd_gray_dl1 ;
+wire[`MAC_TX_FF_DEPTH-1:0]       Add_rd_gray_tmp ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_rd_ungray   ;
 wire[35:0]      Din             ;
 wire[35:0]      Dout            ;
 reg             Wr_en           ;
-wire[`MAC_RX_FF_DEPTH-1:0]       Add_wr_pluse    ;
-wire[`MAC_RX_FF_DEPTH-1:0]       Add_wr_pluse_pluse;
-wire[`MAC_RX_FF_DEPTH-1:0]       Add_rd_pluse    ;
-reg [`MAC_RX_FF_DEPTH-1:0]       Add_rd_reg_dl1  ;
+wire[`MAC_TX_FF_DEPTH-1:0]       Add_wr_pluse    ;
+wire[`MAC_TX_FF_DEPTH-1:0]       Add_wr_pluse_pluse;
+wire[`MAC_TX_FF_DEPTH-1:0]       Add_rd_pluse    ;
+reg [`MAC_TX_FF_DEPTH-1:0]       Add_rd_reg_dl1  ;
 reg             Full            /* synthesis syn_keep=1 */;
 reg             AlmostFull      /* synthesis syn_keep=1 */;
 reg             Empty           /* synthesis syn_keep=1 */;
@@ -186,17 +186,14 @@ always @ (*)
         SYS_EOP_ok:
             if (S_AXIS_tvalid&&S_AXIS_tready&&Tx_mac_sop)
                 Next_state_SYS      =SYS_SOP;
-            else if (S_AXIS_tvalid&&S_AXIS_tready)
+            else 
                 Next_state_SYS      =SYS_idle;
-            else
-                Next_state_SYS      =Current_state_SYS ;
+
         SYS_EOP_err:
             if (S_AXIS_tvalid&&S_AXIS_tready&&Tx_mac_sop)
                 Next_state_SYS      =SYS_SOP;
-            else if (S_AXIS_tvalid&&S_AXIS_tready)
+            else 
                 Next_state_SYS      =SYS_idle;
-            else
-                Next_state_SYS      =Current_state_SYS ;
         SYS_SOP_err:
                 Next_state_SYS      =SYS_DROP;
         SYS_DROP: //FIFO overflow           
@@ -276,8 +273,8 @@ always @ (posedge Reset or posedge Clk_SYS)
         Add_wr_gray         <=0;
     else 
 		begin
-		Add_wr_gray[`MAC_RX_FF_DEPTH-1]	<=Add_wr[`MAC_RX_FF_DEPTH-1];
-		for (i=`MAC_RX_FF_DEPTH-2;i>=0;i=i-1)
+		Add_wr_gray[`MAC_TX_FF_DEPTH-1]	<=Add_wr[`MAC_TX_FF_DEPTH-1];
+		for (i=`MAC_TX_FF_DEPTH-2;i>=0;i=i-1)
 		Add_wr_gray[i]			<=Add_wr[i+1]^Add_wr[i];
 		end                             
 
@@ -300,8 +297,8 @@ always @ (posedge Clk_SYS or posedge Reset)
         Add_rd_ungray       =0;
     else if (!Add_rd_jump_wr_pl1)       
 		begin
-		Add_rd_ungray[`MAC_RX_FF_DEPTH-1]	=Add_rd_gray_dl1[`MAC_RX_FF_DEPTH-1];	
-		for (i=`MAC_RX_FF_DEPTH-2;i>=0;i=i-1)
+		Add_rd_ungray[`MAC_TX_FF_DEPTH-1]	=Add_rd_gray_dl1[`MAC_TX_FF_DEPTH-1];	
+		for (i=`MAC_TX_FF_DEPTH-2;i>=0;i=i-1)
 			Add_rd_ungray[i]	    =Add_rd_ungray[i+1]^Add_rd_gray_dl1[i];	
 		end    
 assign          Add_wr_pluse        =Add_wr+1;
@@ -397,9 +394,9 @@ always @ (posedge Clk_SYS or posedge Reset)
     if (Reset)
         Fifo_data_count     <=0;
     else if (FullDuplex)
-        Fifo_data_count     <=Add_wr[`MAC_RX_FF_DEPTH-1:`MAC_RX_FF_DEPTH-5]-Add_rd_ungray[`MAC_RX_FF_DEPTH-1:`MAC_RX_FF_DEPTH-5];
+        Fifo_data_count     <=Add_wr[`MAC_TX_FF_DEPTH-1:`MAC_TX_FF_DEPTH-5]-Add_rd_ungray[`MAC_TX_FF_DEPTH-1:`MAC_TX_FF_DEPTH-5];
     else
-        Fifo_data_count     <=Add_wr[`MAC_RX_FF_DEPTH-1:`MAC_RX_FF_DEPTH-5]-Add_rd_reg_dl1[`MAC_RX_FF_DEPTH-1:`MAC_RX_FF_DEPTH-5]; //for half duplex backoff requirement
+        Fifo_data_count     <=Add_wr[`MAC_TX_FF_DEPTH-1:`MAC_TX_FF_DEPTH-5]-Add_rd_reg_dl1[`MAC_TX_FF_DEPTH-1:`MAC_TX_FF_DEPTH-5]; //for half duplex backoff requirement
         
 
 always @ (posedge Clk_SYS or posedge Reset)
@@ -564,8 +561,8 @@ always @ (posedge Reset or posedge Clk_MAC)
         Add_rd_gray         <=0;
     else 
 		begin
-		Add_rd_gray[`MAC_RX_FF_DEPTH-1]	<=Add_rd[`MAC_RX_FF_DEPTH-1];
-		for (i=`MAC_RX_FF_DEPTH-2;i>=0;i=i-1)
+		Add_rd_gray[`MAC_TX_FF_DEPTH-1]	<=Add_rd[`MAC_TX_FF_DEPTH-1];
+		for (i=`MAC_TX_FF_DEPTH-2;i>=0;i=i-1)
 		Add_rd_gray[i]			<=Add_rd[i+1]^Add_rd[i];
 		end
 //
@@ -581,8 +578,8 @@ always @ (posedge Clk_MAC or posedge Reset)
         Add_wr_ungray       =0;
     else        
 		begin
-		Add_wr_ungray[`MAC_RX_FF_DEPTH-1]	=Add_wr_gray_dl1[`MAC_RX_FF_DEPTH-1];	
-		for (i=`MAC_RX_FF_DEPTH-2;i>=0;i=i-1)
+		Add_wr_ungray[`MAC_TX_FF_DEPTH-1]	=Add_wr_gray_dl1[`MAC_TX_FF_DEPTH-1];	
+		for (i=`MAC_TX_FF_DEPTH-2;i>=0;i=i-1)
 			Add_wr_ungray[i]	=Add_wr_ungray[i+1]^Add_wr_gray_dl1[i];	
 		end                   
 //empty     
@@ -749,14 +746,19 @@ always @ (Current_state_MAC or Dout_eop)
 //******************************************************************************
 //******************************************************************************
 
-duram #(36,`MAC_TX_FF_DEPTH,"auto") U_duram(           
+duram #(36,`MAC_TX_FF_DEPTH) U_duram(           
 .data_a         (Din        ), 
 .wren_a         (Wr_en      ), 
 .address_a      (Add_wr     ), 
+.clock_a        (Clk_SYS    ), 
+.q_a			(			),
+.regce_a		(1'b1		),
+.data_b			(0			),
 .wren_b			(1'b0		),
 .address_b      (Add_rd     ), 
-.clock_a        (Clk_SYS    ), 
 .clock_b        (Clk_MAC    ), 
-.q_b            (Dout       ));
+.q_b            (Dout       ),
+.regce_b		(1'b1		)
+);
 
 endmodule

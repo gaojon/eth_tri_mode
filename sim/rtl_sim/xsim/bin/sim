@@ -7,7 +7,7 @@ exit 1
 fi
 
 
-xelab --incr --debug typical --relax --mt 8 -L xil_defaultlib -L uvm -L unisims_ver -L unimacro_ver -L secureip -L xpm --snapshot tb_top_behav xil_defaultlib.tb_top -log ../log/elaborate.log
+xelab --incr --debug typical --relax --mt 8 -L xil_defaultlib -L uvm -L unisims_ver -L unimacro_ver -L secureip -L xpm --snapshot tb_top_behav xil_defaultlib.tb_top glbl -log ../log/elaborate.log
 
 if test $? -ne 0
 then
@@ -15,5 +15,12 @@ echo elaborating err occured...
 exit 1
 fi
 
-#xsim tb_top_behav -key {Behavioral:sim_1:Functional:tb_top} -tclbatch tb_top.tcl -log ../log/simulate.log $1
-xsim tb_top_behav -key {Behavioral:sim_1:Functional:tb_top} --runall -log ../log/simulate.log $1
+echo $# 
+
+
+if test $# -ne 1
+then
+xsim tb_top_behav -key {Behavioral:sim_1:Functional:tb_top} --runall -log ../log/simulate.log
+else
+xsim tb_top_behav -key {Behavioral:sim_1:Functional:tb_top} -tclbatch tb_top.tcl -log ../log/simulate.log -gui
+fi

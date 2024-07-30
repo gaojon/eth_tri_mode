@@ -31,7 +31,7 @@ assign          Clka=Clk;
 assign  #2      Clkb=Clk;
 //******************************************************************************
 
-duram #(32,6,"auto") U_duram(    
+duram #(32,6) U_duram(    
 .data_a         (Dina           ),  
 .data_b         (32'b0          ),  
 .wren_a         (Wea            ),  

@@ -15,9 +15,11 @@ instantiate Phy_sim.v (
 )
 
 instantiate User_int_sim.sv ( 
+Reset		:!ResetB
 )
 
 instantiate host_sim.v (
+Reset		:!ResetB
 )
 
 }

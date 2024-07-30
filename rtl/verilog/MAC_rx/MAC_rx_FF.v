@@ -1,66 +1,4 @@
-//////////////////////////////////////////////////////////////////////
-////                                                              ////
-////  MAC_rx_FF.v                                                 ////
-////                                                              ////
-////  This file is part of the Ethernet IP core project           ////
-////  http://www.opencores.org/projects.cgi/web/ethernet_tri_mode/////
-////                                                              ////
-////  Author(s):                                                  ////
-////      - Jon Gao (gaojon@yahoo.com)                            ////
-////                                                              ////
-////                                                              ////
-//////////////////////////////////////////////////////////////////////
-////                                                              ////
-//// Copyright (C) 2001 Authors                                   ////
-////                                                              ////
-//// This source file may be used and distributed without         ////
-//// restriction provided that this copyright statement is not    ////
-//// removed from the file and that any derivative work contains  ////
-//// the original copyright notice and the associated disclaimer. ////
-////                                                              ////
-//// This source file is free software; you can redistribute it   ////
-//// and/or modify it under the terms of the GNU Lesser General   ////
-//// Public License as published by the Free Software Foundation; ////
-//// either version 2.1 of the License, or (at your option) any   ////
-//// later version.                                               ////
-////                                                              ////
-//// This source is distributed in the hope that it will be       ////
-//// useful, but WITHOUT ANY WARRANTY; without even the implied   ////
-//// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR      ////
-//// PURPOSE.  See the GNU Lesser General Public License for more ////
-//// details.                                                     ////
-////                                                              ////
-//// You should have received a copy of the GNU Lesser General    ////
-//// Public License along with this source; if not, download it   ////
-//// from http://www.opencores.org/lgpl.shtml                     ////
-////                                                              ////
-//////////////////////////////////////////////////////////////////////
-//                                                                    
-// CVS Revision History                                               
-//                                                                    
-// $Log: not supported by cvs2svn $
-// Revision 1.6  2008/08/17 11:41:30  maverickist
-// no message
-//
-// Revision 1.5  2006/06/25 04:58:56  maverickist
-// no message
-//
-// Revision 1.4  2006/05/28 05:09:20  maverickist
-// no message
-//
-// Revision 1.3  2006/01/19 14:07:54  maverickist
-// verification is complete.
-//
-// Revision 1.3  2005/12/16 06:44:16  Administrator
-// replaced tab with space.
-// passed 9.6k length frame test.
-//
-// Revision 1.2  2005/12/13 12:15:37  Administrator
-// no message
-//
-// Revision 1.1.1.1  2005/12/13 01:51:45  Administrator
-// no message
-//                                           
+`include "header.v"                                     
 
 module MAC_rx_FF (
 Reset       ,                                                                                                                                             
@@ -150,9 +88,8 @@ wire[`MAC_RX_FF_DEPTH-1:0]       Add_wr_pluse;
 wire[`MAC_RX_FF_DEPTH-1:0]       Add_wr_pluse4;
 wire[`MAC_RX_FF_DEPTH-1:0]       Add_wr_pluse3;
 wire[`MAC_RX_FF_DEPTH-1:0]       Add_wr_pluse2;
-reg             Full;
-reg             Almost_full;
-reg             Empty /* synthesis syn_keep=1 */;
+
+wire             Empty /* synthesis syn_keep=1 */;
 reg [3:0]       Current_state /* synthesis syn_keep=1 */;
 reg [3:0]       Next_state;
 reg [7:0]       Fifo_data_byte0;
@@ -161,7 +98,7 @@ reg [7:0]       Fifo_data_byte2;
 reg [7:0]       Fifo_data_byte3;
 reg             Fifo_data_en_dl1;
 reg [7:0]       Fifo_data_dl1;
-reg             Rx_mac_sop_tmp  ;
+
 reg             Rx_mac_sop  ;
 reg             Rx_mac_ra   ;
 reg             Rx_mac_pa   ;
@@ -185,8 +122,7 @@ reg             Packet_number_add_tmp_dl2;
 
 reg             Rx_mac_sop_tmp_dl1;
 
-reg [4:0]       Fifo_data_count;
-reg             Rx_mac_pa_tmp       ;
+wire [4:0]       Fifo_data_count;
 reg             Add_wr_jump_tmp     ;
 reg             Add_wr_jump_tmp_pl1 ;
 reg             Add_wr_jump         ;
@@ -261,104 +197,10 @@ always @(Current_state or Fifo_data_en or Fifo_data_err or Fifo_data_end)
                 Next_state      =State_idle;                
     endcase
 
-//
-always @ (posedge Clk_MAC or posedge Reset)
-    if (Reset)
-        Add_wr_reg      <=0;
-    else if (Current_state==State_idle)                 
-        Add_wr_reg      <=Add_wr;
-        
-//
 
-    
-always @ (posedge Reset or posedge Clk_MAC)
-    if (Reset)
-        Add_wr_gray         <=0;
-    else 
-		begin
-		Add_wr_gray[`MAC_RX_FF_DEPTH-1]	<=Add_wr[`MAC_RX_FF_DEPTH-1];
-		for (i=`MAC_RX_FF_DEPTH-2;i>=0;i=i-1)
-		Add_wr_gray[i]			<=Add_wr[i+1]^Add_wr[i];
-		end
-
-//
-
-always @ (posedge Clk_MAC or posedge Reset)
-    if (Reset)
-        Add_rd_gray_dl1         <=0;
-    else
-        Add_rd_gray_dl1         <=Add_rd_gray;
                     
-always @ (posedge Clk_MAC or posedge Reset)
-    if (Reset)
-        Add_rd_ungray       =0;
-    else        
-		begin
-		Add_rd_ungray[`MAC_RX_FF_DEPTH-1]	=Add_rd_gray_dl1[`MAC_RX_FF_DEPTH-1];	
-		for (i=`MAC_RX_FF_DEPTH-2;i>=0;i=i-1)
-			Add_rd_ungray[i]	=Add_rd_ungray[i+1]^Add_rd_gray_dl1[i];	
-		end        
-assign          Add_wr_pluse=Add_wr+1;
-assign		Add_wr_pluse4=Add_wr+4;
-assign		Add_wr_pluse3=Add_wr+3;
-assign		Add_wr_pluse2=Add_wr+2;
 
-			              
 
-always @ (posedge Clk_MAC or posedge Reset)
-    if (Reset)
-        Full    <=0;
-    else if (Add_wr_pluse==Add_rd_ungray)
-        Full    <=1;
-    else
-        Full    <=0;
-
-always @ (posedge Clk_MAC or posedge Reset)
-	if (Reset)
-		Almost_full	<=0;
-	else if (Add_wr_pluse4==Add_rd_ungray||
-	         Add_wr_pluse3==Add_rd_ungray||
-	         Add_wr_pluse2==Add_rd_ungray||
-	         Add_wr_pluse==Add_rd_ungray
-	         )
-		Almost_full	<=1;
-	else
-		Almost_full	<=0;		
-
-assign		Fifo_full =Almost_full;
-
-//
-always @ (posedge Clk_MAC or posedge Reset)
-    if (Reset)
-        Add_wr  <=0;
-    else if (Current_state==State_err_end)
-        Add_wr  <=Add_wr_reg;
-    else if (Wr_en&&!Full)
-        Add_wr  <=Add_wr +1;
-        
-always @ (posedge Clk_MAC or posedge Reset)
-	if (Reset)
-	    Add_wr_jump_tmp <=0;
-	else if (Current_state==State_err_end)
-	    Add_wr_jump_tmp <=1;
-	else
-	    Add_wr_jump_tmp <=0;
-
-always @ (posedge Clk_MAC or posedge Reset)
-	if (Reset)
-	    Add_wr_jump_tmp_pl1 <=0;
-	else
-	    Add_wr_jump_tmp_pl1 <=Add_wr_jump_tmp;	 
-	    
-always @ (posedge Clk_MAC or posedge Reset)
-	if (Reset)
-	    Add_wr_jump <=0;
-	else if (Current_state==State_err_end)
-	    Add_wr_jump <=1;
-	else if (Add_wr_jump_tmp_pl1)
-	    Add_wr_jump <=0;	       		
-		
-//
 always @ (posedge Clk_MAC or posedge Reset)
     if (Reset)
         Fifo_data_en_dl1    <=0;
@@ -399,13 +241,15 @@ always @ (* )
             Din_tmp ={4'b1010,Fifo_data_byte3,Fifo_data_byte2,16'h0};
         State_be3:
             Din_tmp ={4'b1011,Fifo_data_byte3,Fifo_data_byte2,Fifo_data_byte1,8'h0};
+		State_err_end:
+			Din_tmp ={4'b1000,32'h0};
         default:
             Din_tmp ={4'b0000,Fifo_data_byte3,Fifo_data_byte2,Fifo_data_byte1,Fifo_data_dl1};
     endcase
     
 always @ (*)
     if (Current_state==State_be0||Current_state==State_be1||
-       Current_state==State_be2||Current_state==State_be3||
+       Current_state==State_be2||Current_state==State_be3||Current_state==State_err_end||
       (Current_state==State_byte0&&Fifo_data_en))
         Wr_en_tmp   =1;
     else 
@@ -448,7 +292,7 @@ always @ (posedge Clk_MAC or posedge Reset)
     if (Reset)
         Packet_number_add_tmp   <=0;
     else if (Current_state==State_be0||Current_state==State_be1||
-             Current_state==State_be2||Current_state==State_be3)
+             Current_state==State_be2||Current_state==State_be3||Current_state==State_err_end)
         Packet_number_add_tmp   <=1;
     else 
         Packet_number_add_tmp   <=0;
@@ -502,8 +346,9 @@ always @ (posedge Clk_MAC or posedge Reset)
 //******************************************************************************
 //domain Clk_SYS,read data from dprom.b-port for read
 //******************************************************************************
-reg 	[3:0]	state_counter;
-reg		Rx_mac_rd;
+reg 	[3:0]	state_counter	;
+wire			data_valid		;
+reg				fifo_rd			;
 
 always @ (posedge Clk_SYS or posedge Reset)
     if (Reset)
@@ -531,35 +376,15 @@ always @ (*)
         SYS_read:
             if (Dout[35])                
                 Next_state_SYS  =SYS_idle;
-            else if (!M_AXIS_tready)
-                Next_state_SYS  =SYS_pause;
             else if (Empty)
                 Next_state_SYS  =FF_emtpy_err;
             else
-                Next_state_SYS  =Current_state_SYS;
-        SYS_pause:
-            if (M_AXIS_tready)                            
-                Next_state_SYS  =SYS_read;         
-            else                                   
                 Next_state_SYS  =Current_state_SYS;
         FF_emtpy_err:
             if (!Empty)
                 Next_state_SYS  =SYS_read;
             else
                 Next_state_SYS  =Current_state_SYS;  
-		/*			
-        SYS_pre:
-            if (state_counter==4'd1)
-                Next_state_SYS  =SYS_read;
-            else
-                Next_state_SYS  =Current_state_SYS;        
-				
-		SYS_lag:
-            if (state_counter==4'd1)
-                Next_state_SYS  =SYS_idle;
-            else
-                Next_state_SYS  =Current_state_SYS;   
-		*/
         default:
                 Next_state_SYS  =SYS_idle;
     endcase
@@ -593,11 +418,7 @@ always @ (posedge Clk_SYS or posedge Reset)
 	else if (!Packet_number_add_edge&&Packet_number_sub&&Packet_number_inFF!=0)
         Packet_number_inFF      <=Packet_number_inFF - 1;
 
-always @ (posedge Clk_SYS or posedge Reset)                                                         
-    if (Reset)                                                                                      
-        Fifo_data_count     <=0;                                                                    
-    else                                                                                            
-        Fifo_data_count     <=Add_wr_ungray[`MAC_RX_FF_DEPTH-1:`MAC_RX_FF_DEPTH-5]-Add_rd[`MAC_RX_FF_DEPTH-1:`MAC_RX_FF_DEPTH-5]; 
+
 
 always @ (posedge Clk_SYS or posedge Reset)                                                         
     if (Reset) 
@@ -618,78 +439,14 @@ always @ (*)
         Rx_mac_ra   =1'b1;
 
 
-
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset) 
-		Rx_mac_rd	<=1'b0;
-	else if (Rx_mac_ra)
-		Rx_mac_rd	<=1'b1;
-	else if (Dout[35])
-		Rx_mac_rd	<=1'b0;
  
-//control Add_rd signal;
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)
-        Add_rd      <=0;
-//	else if (Current_state_SYS==SYS_read&&M_AXIS_tready&&(Dout[35]&&Addr_freshed_ptr)) //duram read 2 cycles delay, so need jump back read pointer.
-//		Add_rd      <=Add_rd - 1;
-    else if (Current_state_SYS==SYS_read&&M_AXIS_tready)  
-        Add_rd      <=Add_rd + 1'b1;
-
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)
-        Add_rd_pl1  <=0;
-    else
-        Add_rd_pl1  <=Add_rd; 
-        
-always @ (*)
-    if (Add_rd_pl1==Add_rd)
-        Addr_freshed_ptr      =0;
-    else
-        Addr_freshed_ptr      =1;
-
-//
-always @ (posedge Reset or posedge Clk_SYS)
-    if (Reset)
-        Add_rd_gray         <=0;
-    else 
-		begin
-		Add_rd_gray[`MAC_RX_FF_DEPTH-1]	<=Add_rd[`MAC_RX_FF_DEPTH-1];
-		for (i=`MAC_RX_FF_DEPTH-2;i>=0;i=i-1)
-		Add_rd_gray[i]			<=Add_rd[i+1]^Add_rd[i];
-		end
-//
-
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)
-        Add_wr_gray_dl1     <=0;
-    else
-        Add_wr_gray_dl1     <=Add_wr_gray;
-            
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)
-        Add_wr_jump_rd_pl1  <=0;
-    else        
-        Add_wr_jump_rd_pl1  <=Add_wr_jump;	
-            
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)
-        Add_wr_ungray       =0;
-    else if (!Add_wr_jump_rd_pl1)       
-		begin
-		Add_wr_ungray[`MAC_RX_FF_DEPTH-1]	=Add_wr_gray_dl1[`MAC_RX_FF_DEPTH-1];	
-		for (i=`MAC_RX_FF_DEPTH-2;i>=0;i=i-1)
-			Add_wr_ungray[i]	=Add_wr_ungray[i+1]^Add_wr_gray_dl1[i];	
-		end                    
-//empty signal gen  
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)      
-        Empty   <=1;
-    else if (Add_rd==Add_wr_ungray)
-        Empty   <=1;
-    else
-        Empty   <=0;
-
+ always @ (*)
+    if (Current_state_SYS==SYS_read&&M_AXIS_tready)  
+		fifo_rd		=1'b1;
+	else
+		fifo_rd		=1'b0;
+		
+     
 
 assign  M_AXIS_tdata     =Dout[31:0];
 assign  M_AXIS_tlast     =Dout[35];
@@ -701,23 +458,13 @@ always @ (*)
 		2'b10:	M_AXIS_tstrb =4'b1100;
 		2'b11:	M_AXIS_tstrb =4'b1110;
 		default:M_AXIS_tstrb =4'b1111;
-	endcase;
+	endcase
 		
-
-//aligned to Addr_rd 
-always @ (posedge Clk_SYS or posedge Reset) 
-    if (Reset)
-        Rx_mac_pa_tmp   <=0;    
-    else if (Current_state_SYS==SYS_read&&!(Dout[35]&&Addr_freshed_ptr))         
-        Rx_mac_pa_tmp   <=1;
-    else
-        Rx_mac_pa_tmp   <=0;
-
 
 
 always @ (*) 
     if (Current_state_SYS==SYS_read)
-        M_AXIS_tvalid   =1'b1;
+        M_AXIS_tvalid   =data_valid;
     else 
         M_AXIS_tvalid   =1'b0;
  
@@ -726,41 +473,29 @@ assign 			M_AXIS_tdest      	=1'b0;
 assign 			M_AXIS_tid        	=1'b0; 
 
     
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)
-        Rx_mac_sop_tmp      <=0;
-    else if (Current_state_SYS==SYS_idle&&Next_state_SYS==SYS_read)
-        Rx_mac_sop_tmp      <=1;
-    else
-        Rx_mac_sop_tmp      <=0;
-        
-
-/*        
-always @ (posedge Clk_SYS or posedge Reset)
-    if (Reset)
-        begin
-        Rx_mac_sop_tmp_dl1  <=0;
-        Rx_mac_sop          <=0;
-        end
-    else 
-        begin
-        Rx_mac_sop_tmp_dl1  <=Rx_mac_sop_tmp;
-        Rx_mac_sop          <=Rx_mac_sop_tmp_dl1;
-        end
-*/
 
 
 //******************************************************************************
 
-duram #(36,`MAC_RX_FF_DEPTH,"auto") U_duram(          
-.data_a         (Din        ), 
-.wren_a         (Wr_en      ), 
-.address_a      (Add_wr     ),
-.wren_b         (1'b0       ), 
-.address_b      (Add_rd     ), 
-.clock_a        (Clk_MAC    ), 
-.clock_b        (Clk_SYS    ), 
-.q_b            (Dout       ));
+xpm_afifo #(36,`MAC_RX_FF_DEPTH) u_xpm_afifo (
+.data_valid				(data_valid			),
+.dout			        (Dout               ),
+.empty			        (Empty              ),
+.almost_full            (Fifo_full          ),
+.full			        (                   ),
+.overflow		        (                   ),
+.rd_rst_busy	        (                   ),
+.underflow		        (                   ),
+.wr_ack			        (                   ),
+.din				    (Din                ),
+.rd_clk			        (Clk_SYS            ),
+.rd_en			        (fifo_rd            ),
+.rst				    (1'b0               ),
+.wr_clk			        (Clk_MAC            ),
+.rd_data_count			(Fifo_data_count	),
+.wr_en                  (Wr_en              )
+);
+
 
 endmodule
 

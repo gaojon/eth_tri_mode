@@ -232,7 +232,9 @@ always @ (*)
                     if (!Crs_dv)                        
                         Next_state  =State_ErrEnd;      
                     else if (RxErr)                     
-                        Next_state  =State_drop;        
+                        Next_state  =State_drop;  
+                    else if (Fifo_full)
+                        Next_state  =State_FFFullErrEnd;      
                     else                                
                         Next_state  =State_data;       
             State_data:                                

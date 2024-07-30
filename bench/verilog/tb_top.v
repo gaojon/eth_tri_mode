@@ -15,7 +15,7 @@ output                                Mdc                           ;// MII Mana
 //******************************************************************************
 
 
-wire                                  Reset                         ;
+wire                                  ResetB                        ;
 wire                                  Clk_user                      ;
 wire                                  Clk_reg                       ;
 wire                                  Clk_125M                      ;
@@ -69,7 +69,7 @@ wire                                  CPU_init_end                  ;
 
 
 rst_clk_gen U_rst_clk_gen (
-.Reset                         (Reset                         ),
+.ResetB                        (ResetB                        ),
 .Clk_125M                      (Clk_125M                      ),
 .Clk_user                      (Clk_user                      ),
 .Clk_reg                       (Clk_reg                       ));
@@ -77,7 +77,7 @@ rst_clk_gen U_rst_clk_gen (
 
 MAC_top U_MAC_top (
 .Speed                         (Speed                         ),
-.Reset                         (Reset                         ),
+.ResetB                        (ResetB                        ),
 .Clk_user                      (Clk_user                      ),
 .M_AXIS_tdata                  (M_AXIS_tdata                  ),
 .M_AXIS_tdest                  (M_AXIS_tdest                  ),
@@ -144,7 +144,7 @@ Phy_sim U_Phy_sim (
 
 
 User_int_sim U_User_int_sim (
-.Reset                         (Reset                         ),
+.Reset                         (!ResetB                       ),
 .Clk_user                      (Clk_user                      ),
 .CPU_init_end                  (CPU_init_end                  ),
 .M_AXIS_tdata                  (M_AXIS_tdata                  ),
@@ -165,7 +165,7 @@ User_int_sim U_User_int_sim (
 
 host_sim U_host_sim (
 .Clk_reg                       (Clk_reg                       ),
-.Reset                         (Reset                         ),
+.Reset                         (!ResetB                       ),
 .S_AXI_araddr                  (S_AXI_araddr                  ),
 .S_AXI_arready                 (S_AXI_arready                 ),
 .S_AXI_arvalid                 (S_AXI_arvalid                 ),
